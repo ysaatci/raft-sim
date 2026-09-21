@@ -1,7 +1,7 @@
 import { createStore, useStore } from 'zustand'
 import { linkStatus } from '@/lib/cluster'
 import type { Frame, SimulationClient } from '@/client/client'
-import type { Action, Config, NodeID, SimEvent, SimState } from '@/client/types'
+import type { Action, Config, NodeID, Scenario, SimEvent, SimState } from '@/client/types'
 
 export const SPEEDS = [0.02, 0.05, 0.1, 0.25, 1] as const
 export const DEFAULT_SPEED = 0.05
@@ -19,6 +19,12 @@ export interface SimStore {
   playing: boolean
   /** Virtual milliseconds per real millisecond. */
   speed: number
+  /** Built-in guided scenarios, fetched once at startup. */
+  scenarios: Scenario[]
+  /** The scenario being played, or null in free play. */
+  scenario: Scenario | null
+  /** The user has acted during the scenario, so its narration may no longer match. */
+  diverged: boolean
   /** Set if the simulator could not start (e.g. the WASM failed to load). */
   loadError: string | null
   /** Last rejected action, e.g. proposing to a follower. */
@@ -31,6 +37,8 @@ export interface SimStore {
   horizon: number
 
   init(client: SimulationClient, config?: Partial<Config>): Promise<void>
+  /** Loads a built-in scenario, rewound to its start, and plays it. */
+  loadScenario(id: string): Promise<void>
   /** Starts over on the same client, with a new or the current config. */
   reset(config?: Partial<Config>): Promise<void>
   play(): void
@@ -93,6 +101,9 @@ export function createSimStore() {
       partitionDraft: null,
       horizon: 0,
       loadError: null,
+      scenarios: [],
+      scenario: null,
+      diverged: false,
 
       async init(client, config) {
         get().client?.dispose()
@@ -108,19 +119,50 @@ export function createSimStore() {
           partitionDraft: null,
           horizon: 0,
           loadError: null,
+          scenario: null,
+          diverged: false,
         })
         try {
           apply(await client.create(config))
+          // Scenarios are optional: free play works without them.
+          set({ scenarios: await client.scenarios().catch(() => []) })
         } catch (e) {
           set({ loadError: e instanceof Error ? e.message : String(e) })
         }
+      },
+      async loadScenario(id) {
+        const scenario = get().scenarios.find((s) => s.id === id)
+        if (!scenario) return
+        carry = 0
+        await run((c) => {
+          set({
+            events: [],
+            selected: null,
+            partitionDraft: null,
+            error: null,
+            horizon: 0,
+            scenario,
+            diverged: false,
+          })
+          return c.loadScenario(id)
+        })
+        // The whole script is recorded, so the timeline spans all of it.
+        set({ horizon: scenario.duration, playing: true })
       },
       async reset(config) {
         const cfg = config ?? get().state?.config
         carry = 0
         await run((c) => {
           // Clear inside the queue, after any in-flight request has landed.
-          set({ events: [], selected: null, partitionDraft: null, horizon: 0, error: null })
+          set({
+            events: [],
+            selected: null,
+            partitionDraft: null,
+            horizon: 0,
+            error: null,
+            scenario: null,
+            diverged: false,
+          })
           return c.create(cfg)
         })
       },
@@ -153,7 +195,11 @@ export function createSimStore() {
             return c.do(action)
           })
           // Acting in the past starts a new branch: the recorded future is gone.
-          set(branched ? { error: null, horizon: get().state!.time } : { error: null })
+          set({
+            error: null,
+            diverged: get().scenario !== null,
+            ...(branched ? { horizon: get().state!.time } : {}),
+          })
           return true
         } catch (e) {
           set({ error: e instanceof Error ? e.message : String(e) })

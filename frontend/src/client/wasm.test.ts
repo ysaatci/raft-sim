@@ -28,7 +28,7 @@ const frame = (time: number) => ({
 })
 
 test('parses frames and matches responses to requests', async () => {
-  const w = fakeWorker((req) => ({ id: req.id, frame: frame(Number(req.arg)) }))
+  const w = fakeWorker((req) => ({ id: req.id, frame: frame(Number('arg' in req ? req.arg : 0)) }))
   const c = new WasmClient(w)
   const [a, b] = await Promise.all([c.advance(10), c.advance(20)])
   expect(a.state.time).toBe(10)
@@ -43,7 +43,11 @@ test('serializes arguments', async () => {
   await c.create({ size: 3 })
   await c.create()
   await c.do({ kind: 'crash', node: 2 })
-  expect(w.sent.map((r) => r.arg)).toEqual(['{"size":3}', '', '{"kind":"crash","node":2}'])
+  expect(w.sent.map((r) => ('arg' in r ? r.arg : undefined))).toEqual([
+    '{"size":3}',
+    '',
+    '{"kind":"crash","node":2}',
+  ])
 })
 
 test('rejects with the simulator error message', async () => {

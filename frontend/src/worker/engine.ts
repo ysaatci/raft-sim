@@ -12,6 +12,8 @@ export interface RaftSimApi {
   state(): string | { error: string }
   events(since: number): string | { error: string }
   actions(): string | { error: string }
+  scenarios(): string
+  loadScenario(id: string): string | null
 }
 
 /** A frame as sent to the main thread: JSON strings, parsed there. */
@@ -21,7 +23,7 @@ export interface RawFrame {
   reset: boolean
 }
 
-export type Method = 'create' | 'advance' | 'seek' | 'do'
+export type Method = 'create' | 'scenario' | 'advance' | 'seek' | 'do'
 
 export class Engine {
   private api: RaftSimApi
@@ -39,6 +41,10 @@ export class Engine {
         err = this.api.create(arg as string)
         reset = true
         break
+      case 'scenario':
+        err = this.api.loadScenario(arg as string)
+        reset = true
+        break
       case 'advance':
         err = this.api.advance(arg as number)
         break
@@ -52,6 +58,11 @@ export class Engine {
     }
     if (err !== null) throw new Error(err)
     return this.frame(reset)
+  }
+
+  /** The built-in scenarios, as JSON. */
+  scenarios(): string {
+    return this.api.scenarios()
   }
 
   private frame(reset: boolean): RawFrame {

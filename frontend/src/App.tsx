@@ -6,10 +6,12 @@ import { EventFeed } from '@/components/EventFeed'
 import { InvariantBadge } from '@/components/InvariantBadge'
 import { Legend } from '@/components/Legend'
 import { LogGrid } from '@/components/LogGrid'
+import { Narration } from '@/components/Narration'
 import { NetworkPanel } from '@/components/NetworkPanel'
 import { NodePanel } from '@/components/NodePanel'
 import { Packets } from '@/components/Packets'
 import { PlaybackControls } from '@/components/PlaybackControls'
+import { ScenarioPicker } from '@/components/ScenarioPicker'
 import { Timeline } from '@/components/Timeline'
 import { useSim } from '@/store/sim'
 import { useShortcuts } from '@/store/useShortcuts'
@@ -51,6 +53,7 @@ export default function App() {
       {state ? (
         <main className="grid flex-1 gap-6 p-4 sm:p-6 lg:grid-cols-[1fr_320px]">
           <div className="mx-auto flex w-full max-w-[640px] flex-col gap-2">
+            <Narration />
             <div className="aspect-square w-full">
               <ClusterRing
                 nodes={state.nodes}
@@ -66,6 +69,7 @@ export default function App() {
             <Legend />
           </div>
           <aside className="flex flex-col gap-4">
+            <ScenarioPicker />
             {node ? (
               <NodePanel node={node} />
             ) : (

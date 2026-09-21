@@ -122,3 +122,19 @@ export type Action =
   | { kind: 'set-network'; link: LinkConfig }
   | { kind: 'partition'; groups: NodeID[][] }
   | { kind: 'heal' }
+
+export interface ScenarioStep {
+  at: number
+  /** Empty: the previous narration stays. */
+  narration: string
+  kind?: Action['kind']
+}
+
+export interface Scenario {
+  id: string
+  title: string
+  summary: string
+  config: Config
+  duration: number
+  steps: ScenarioStep[]
+}

@@ -112,3 +112,22 @@ test('reset during an in-flight advance still starts from zero', async () => {
   expect(s().state?.time).toBe(0)
   expect(s().horizon).toBe(0)
 })
+
+test('init fetches the scenarios; loading one plays its whole script', async () => {
+  expect(s().scenarios.map((x) => x.id)).toEqual(['demo', 'other'])
+  await s().loadScenario('demo')
+  expect(client.calls.at(-1)).toBe('scenario demo')
+  expect(s().scenario?.id).toBe('demo')
+  expect(s().state?.nodes).toHaveLength(3)
+  expect(s().horizon).toBe(1000)
+  expect(s().playing).toBe(true)
+})
+
+test('acting during a scenario marks it diverged; reset returns to free play', async () => {
+  await s().loadScenario('demo')
+  await s().act({ kind: 'crash', node: 2 })
+  expect(s().diverged).toBe(true)
+  await s().reset()
+  expect(s().scenario).toBeNull()
+  expect(s().diverged).toBe(false)
+})

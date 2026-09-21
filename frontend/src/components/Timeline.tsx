@@ -19,6 +19,8 @@ export function Timeline() {
 
   const end = Math.max(horizon, 1)
   const markers = events.filter((e) => e.type in MARKERS)
+  const scenario = useSim((s) => s.scenario)
+  const steps = scenario?.steps.filter((st) => st.narration) ?? []
 
   return (
     <div className="flex items-center gap-3 border-b px-4 py-2 sm:px-6">
@@ -33,6 +35,15 @@ export function Timeline() {
                 left: `${(e.time / end) * 100}%`,
                 background: MARKERS[e.type as keyof typeof MARKERS],
               }}
+            />
+          ))}
+        </div>
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 -bottom-2 h-1.5">
+          {steps.map((st) => (
+            <span
+              key={st.at}
+              className="absolute top-0 h-1.5 w-1 -translate-x-1/2 rounded-full bg-primary/60"
+              style={{ left: `${(st.at / end) * 100}%` }}
             />
           ))}
         </div>

@@ -1,4 +1,4 @@
-import type { Action, Config, SimEvent, SimState } from './types'
+import type { Action, Config, Scenario, SimEvent, SimState } from './types'
 
 /** What the UI gets back from every call: the new state plus new events. */
 export interface Frame {
@@ -17,6 +17,9 @@ export interface Frame {
  */
 export interface SimulationClient {
   create(config?: Partial<Config>): Promise<Frame>
+  /** Replaces the simulation with a built-in scenario, rewound to its start. */
+  loadScenario(id: string): Promise<Frame>
+  scenarios(): Promise<Scenario[]>
   advance(ms: number): Promise<Frame>
   seek(time: number): Promise<Frame>
   do(action: Action): Promise<Frame>

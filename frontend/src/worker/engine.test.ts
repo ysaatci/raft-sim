@@ -54,6 +54,16 @@ describe.skipIf(!built)('Engine with raft.wasm', () => {
     expect(f.events.every((e) => e.time <= 400)).toBe(true)
   })
 
+  test('lists and loads built-in scenarios', () => {
+    const list = JSON.parse(engine.scenarios()) as { id: string; duration: number }[]
+    expect(list.map((s) => s.id)).toContain('split-vote')
+    const f = parse(engine.call('scenario', 'split-vote'))
+    expect(f.reset).toBe(true)
+    expect(f.state.time).toBe(0)
+    expect(f.state.nodes).toHaveLength(4)
+    expect(() => engine.call('scenario', 'nope')).toThrow(/no scenario/)
+  })
+
   test('surfaces simulator errors', () => {
     engine.call('create', '')
     expect(() => engine.call('do', '{"kind":"crash","node":42}')).toThrow(/no node 42/)

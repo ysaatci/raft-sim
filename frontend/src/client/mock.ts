@@ -1,5 +1,5 @@
 import type { Frame, SimulationClient } from './client'
-import type { Action, Config, NodeView, SimEvent, SimState } from './types'
+import type { Action, Config, NodeView, Scenario, SimEvent, SimState } from './types'
 
 const nodeEvents = {
   crash: 'node-crashed',
@@ -16,6 +16,30 @@ const defaultConfig: Config = {
   heartbeatTick: 5,
   network: { latencyMs: 20, jitterMs: 5, dropRate: 0, cut: false },
 }
+
+export const MOCK_SCENARIOS: Scenario[] = [
+  {
+    id: 'demo',
+    title: 'Demo',
+    summary: 'A scripted demo.',
+    config: { ...defaultConfig, size: 3, seed: 9 },
+    duration: 1000,
+    steps: [
+      { at: 0, narration: 'First.' },
+      { at: 300, narration: 'Second.', kind: 'propose' },
+      { at: 500, narration: '' },
+      { at: 800, narration: 'Third.' },
+    ],
+  },
+  {
+    id: 'other',
+    title: 'Other',
+    summary: 'Another one.',
+    config: defaultConfig,
+    duration: 500,
+    steps: [{ at: 0, narration: 'Hi.' }],
+  },
+]
 
 function node(id: number): NodeView {
   return {
@@ -65,6 +89,18 @@ export class MockClient implements SimulationClient {
       }
     }
     return this.frame(true)
+  }
+
+  async scenarios(): Promise<Scenario[]> {
+    return structuredClone(MOCK_SCENARIOS)
+  }
+
+  async loadScenario(id: string): Promise<Frame> {
+    const sc = MOCK_SCENARIOS.find((s) => s.id === id)
+    if (!sc) throw new Error(`bridge: no scenario "${id}"`)
+    const frame = await this.create(sc.config)
+    this.calls[this.calls.length - 1] = `scenario ${id}`
+    return frame
   }
 
   async advance(ms: number): Promise<Frame> {

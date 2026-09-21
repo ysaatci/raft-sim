@@ -26,10 +26,15 @@ const ready: Promise<Engine> = (async () => {
 })()
 
 self.onmessage = async (e: MessageEvent<Request>) => {
-  const { id, method, arg } = e.data
+  const req = e.data
+  const { id } = req
   let res: Response
   try {
-    res = { id, frame: (await ready).call(method, arg) }
+    const engine = await ready
+    res =
+      req.method === 'scenarios'
+        ? { id, data: engine.scenarios() }
+        : { id, frame: engine.call(req.method, req.arg) }
   } catch (err) {
     res = { id, error: err instanceof Error ? err.message : String(err) }
   }

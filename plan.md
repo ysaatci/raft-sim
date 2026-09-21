@@ -140,7 +140,7 @@ Makefile
 - [x] 6.1 `feat(sim): scenario DSL` — scripted actions at ticks (crash, partition, propose, heal)
 - [x] 6.2 `feat(sim): scenarios` — normal replication, leader crash, split vote, minority partition, divergent logs, packet loss, crash during replication
 - [x] 6.3 `test(sim): scenario outcome tests` — each preset asserts its expected result
-- [ ] 6.4 `feat(fe): scenario picker + narration` — guided step-by-step captions
+- [x] 6.4 `feat(fe): scenario picker + narration` — guided step-by-step captions
 - [ ] 6.5 `feat(fe): shareable URLs` — seed + scenario + config in URL hash
 - [ ] 6.6 `ci: test workflow` — go vet, go test -race, short chaos run, wasm build, lint, vitest, build
 - [ ] 6.7 `ci: pages deploy workflow` — build wasm + vite (`base: '/raft-sim/'`), `actions/deploy-pages`
