@@ -158,7 +158,8 @@ function Link({
         role: 'button',
         tabIndex: 0,
         'aria-label': `Link N${a}–N${b}, ${style.label}`,
-        className: 'cursor-pointer outline-none [&:hover>line:first-child]:opacity-100',
+        className:
+          'cursor-pointer outline-none [&:hover>line:first-child]:stroke-foreground/50 [&:focus-visible>line:first-child]:stroke-ring',
         onClick: () => onClick(a, b),
         onKeyDown: (e: React.KeyboardEvent) => (e.key === 'Enter' || e.key === ' ') && onClick(a, b),
       }

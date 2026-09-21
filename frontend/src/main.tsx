@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { WasmClient } from './client/wasm'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { simStore } from './store/sim'
 
 void simStore
@@ -12,6 +13,8 @@ void simStore
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 )

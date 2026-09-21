@@ -61,3 +61,14 @@ test('dispose terminates the worker and rejects pending calls', async () => {
   expect(w.terminated).toBe(true)
   await expect(pending).rejects.toThrow('disposed')
 })
+
+test('a worker that fails to start rejects pending calls instead of hanging', async () => {
+  const w = fakeWorker(() => {
+    throw new Error('unreachable')
+  })
+  w.postMessage = () => {} // never answers
+  const c = new WasmClient(w)
+  const pending = c.create()
+  w.onerror?.({ message: 'Failed to fetch raft.wasm' } as ErrorEvent)
+  await expect(pending).rejects.toThrow('simulator failed to start: Failed to fetch raft.wasm')
+})

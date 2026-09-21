@@ -6,6 +6,7 @@ import type { Action, Config } from './types'
 /** The part of Worker the client uses, so tests can substitute a fake. */
 export type WorkerLike = Pick<Worker, 'postMessage' | 'terminate'> & {
   onmessage: ((e: MessageEvent<Response>) => void) | null
+  onerror?: ((e: ErrorEvent) => void) | null
 }
 
 export function createSimWorker(): WorkerLike {
@@ -28,6 +29,9 @@ export class WasmClient implements SimulationClient {
       if ('error' in res) p.reject(new Error(res.error))
       else p.resolve(parseFrame(res.frame))
     }
+    // A worker that fails to start (e.g. a missing file) would otherwise leave
+    // every call hanging.
+    worker.onerror = (e) => this.failAll(`simulator failed to start: ${e.message || 'worker error'}`)
   }
 
   create(config?: Partial<Config>) {
@@ -44,7 +48,11 @@ export class WasmClient implements SimulationClient {
   }
   dispose() {
     this.worker.terminate()
-    for (const p of this.pending.values()) p.reject(new Error('simulation disposed'))
+    this.failAll('simulation disposed')
+  }
+
+  private failAll(message: string) {
+    for (const p of this.pending.values()) p.reject(new Error(message))
     this.pending.clear()
   }
 

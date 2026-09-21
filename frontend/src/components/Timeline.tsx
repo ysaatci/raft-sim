@@ -21,7 +21,7 @@ export function Timeline() {
   const markers = events.filter((e) => e.type in MARKERS)
 
   return (
-    <div className="flex items-center gap-3 border-b px-6 py-2">
+    <div className="flex items-center gap-3 border-b px-4 py-2 sm:px-6">
       <span className="font-mono text-xs text-muted-foreground">0s</span>
       <div className="relative flex-1">
         <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-1.5 h-1.5">

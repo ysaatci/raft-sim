@@ -1,6 +1,8 @@
 import { ClusterRing } from '@/components/ClusterRing'
 import { ClusterSettings } from '@/components/ClusterSettings'
+import { Failure } from '@/components/ErrorBoundary'
 import { ErrorToast } from '@/components/ErrorToast'
+import { EventFeed } from '@/components/EventFeed'
 import { InvariantBadge } from '@/components/InvariantBadge'
 import { Legend } from '@/components/Legend'
 import { LogGrid } from '@/components/LogGrid'
@@ -9,34 +11,45 @@ import { NodePanel } from '@/components/NodePanel'
 import { Packets } from '@/components/Packets'
 import { PlaybackControls } from '@/components/PlaybackControls'
 import { Timeline } from '@/components/Timeline'
-import { EventFeed } from '@/components/EventFeed'
 import { useSim } from '@/store/sim'
+import { useShortcuts } from '@/store/useShortcuts'
 import { useSimLoop } from '@/store/useSimLoop'
+
+const SHORTCUTS = [
+  ['Space', 'play / pause'],
+  ['→', 'step'],
+  ['1–9', 'select node'],
+  ['Esc', 'deselect'],
+]
 
 export default function App() {
   useSimLoop()
+  useShortcuts()
   const state = useSim((s) => s.state)
+  const loadError = useSim((s) => s.loadError)
   const selected = useSim((s) => s.selected)
   const select = useSim((s) => s.select)
   const draft = useSim((s) => s.partitionDraft)
   const { togglePartitionNode, toggleLink } = useSim((s) => s)
   const node = state?.nodes.find((n) => n.id === selected)
 
+  if (loadError) return <Failure title="The simulator could not start" message={loadError} />
+
   return (
     <div className="flex min-h-svh flex-col">
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b px-6 py-3">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 sm:px-6">
         <div>
           <h1 className="text-lg font-semibold tracking-tight">Raft Simulator</h1>
           <p className="text-sm text-muted-foreground">Leader election and log replication, step by step</p>
         </div>
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3">
           <InvariantBadge />
           <PlaybackControls />
         </div>
       </header>
       {state && <Timeline />}
       {state ? (
-        <main className="grid flex-1 gap-6 p-6 lg:grid-cols-[1fr_320px]">
+        <main className="grid flex-1 gap-6 p-4 sm:p-6 lg:grid-cols-[1fr_320px]">
           <div className="mx-auto flex w-full max-w-[640px] flex-col gap-2">
             <div className="aspect-square w-full">
               <ClusterRing
@@ -70,9 +83,16 @@ export default function App() {
         </main>
       ) : (
         <main className="grid flex-1 place-items-center">
-          <p className="text-muted-foreground">Loading simulator…</p>
+          <p className="animate-pulse text-muted-foreground">Loading simulator…</p>
         </main>
       )}
+      <footer className="hidden flex-wrap justify-center gap-x-4 gap-y-1 border-t px-6 py-2 text-xs text-muted-foreground sm:flex">
+        {SHORTCUTS.map(([key, what]) => (
+          <span key={key}>
+            <kbd className="rounded border bg-secondary px-1 font-mono">{key}</kbd> {what}
+          </span>
+        ))}
+      </footer>
       <ErrorToast />
     </div>
   )

@@ -19,6 +19,8 @@ export interface SimStore {
   playing: boolean
   /** Virtual milliseconds per real millisecond. */
   speed: number
+  /** Set if the simulator could not start (e.g. the WASM failed to load). */
+  loadError: string | null
   /** Last rejected action, e.g. proposing to a follower. */
   error: string | null
   /** Node shown in the side panel. */
@@ -90,6 +92,7 @@ export function createSimStore() {
       error: null,
       partitionDraft: null,
       horizon: 0,
+      loadError: null,
 
       async init(client, config) {
         get().client?.dispose()
@@ -104,8 +107,13 @@ export function createSimStore() {
           selected: null,
           partitionDraft: null,
           horizon: 0,
+          loadError: null,
         })
-        apply(await client.create(config))
+        try {
+          apply(await client.create(config))
+        } catch (e) {
+          set({ loadError: e instanceof Error ? e.message : String(e) })
+        }
       },
       async reset(config) {
         const cfg = config ?? get().state?.config

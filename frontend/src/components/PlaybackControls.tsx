@@ -12,9 +12,9 @@ export function PlaybackControls() {
   const { play, pause, step, setSpeed, reset } = useSim((s) => s)
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
       <span
-        className="w-24 text-right font-mono text-sm tabular-nums text-muted-foreground"
+        className="w-16 text-right font-mono text-sm tabular-nums text-muted-foreground sm:w-24"
         aria-label="Simulated time"
       >
         {(time / 1000).toFixed(2)}s
