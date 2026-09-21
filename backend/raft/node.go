@@ -154,6 +154,9 @@ func (n *Node) Status() Status {
 	}
 }
 
+// Entries returns a copy of the node's log, starting at index 1.
+func (n *Node) Entries() []Entry { return n.log.slice(1, n.log.lastIndex()+1) }
+
 func (n *Node) becomeFollower(term uint64, leader NodeID) {
 	if term != n.term {
 		n.term = term

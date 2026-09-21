@@ -83,6 +83,7 @@ type Cluster struct {
 	inflight queue[*Flight]
 	nextID   uint64
 	events   []TimedEvent
+	check    *checker
 }
 
 // NewCluster builds a cluster with every node up and no leader yet.
@@ -94,8 +95,9 @@ func NewCluster(cfg Config) (*Cluster, error) {
 		return nil, errors.New("sim: TickMs must be positive")
 	}
 	c := &Cluster{
-		cfg: cfg,
-		net: NewNetwork(rand.New(rand.NewPCG(cfg.Seed, 0)), cfg.Network),
+		cfg:   cfg,
+		net:   NewNetwork(rand.New(rand.NewPCG(cfg.Seed, 0)), cfg.Network),
+		check: newChecker(),
 	}
 	offsets := rand.New(rand.NewPCG(cfg.Seed, 1))
 	for i := range cfg.Size {
@@ -147,6 +149,7 @@ func (c *Cluster) Advance(ms Time) {
 		c.deliverDue()
 		c.tickDue()
 	}
+	c.checkLogs()
 }
 
 func (c *Cluster) deliverDue() {
@@ -190,12 +193,54 @@ func (c *Cluster) collect(sn *simNode) {
 		}
 	}
 	for _, e := range rd.CommittedEntries {
+		c.check.onApply(c.now, sn.id, e)
 		sn.kv.Apply(e.Data)
 	}
 	for _, e := range rd.Events {
 		c.events = append(c.events, TimedEvent{Time: c.now, Event: e})
+		switch e.Type {
+		case raft.EventBecameLeader:
+			c.check.onLeader(c.now, sn.id, e.Term, sn.node.Entries())
+		case raft.EventCommitAdvanced:
+			c.check.onCommit(c.now, sn.id, e.Term, sn.node.Entries(), e.Index, c.leaderViews())
+		}
 	}
 }
+
+// running returns the nodes that have in-memory state (up or paused).
+func (c *Cluster) running() []*simNode {
+	var out []*simNode
+	for _, sn := range c.nodes {
+		if sn.node != nil {
+			out = append(out, sn)
+		}
+	}
+	return out
+}
+
+func (c *Cluster) leaderViews() []leaderView {
+	var out []leaderView
+	for _, sn := range c.running() {
+		if st := sn.node.Status(); st.Role == raft.Leader {
+			out = append(out, leaderView{id: sn.id, term: st.Term, entries: sn.node.Entries()})
+		}
+	}
+	return out
+}
+
+func (c *Cluster) checkLogs() {
+	logs := map[raft.NodeID][]raft.Entry{}
+	var ids []raft.NodeID
+	for _, sn := range c.running() {
+		logs[sn.id] = sn.node.Entries()
+		ids = append(ids, sn.id)
+	}
+	c.check.checkLogs(c.now, logs, ids)
+}
+
+// Violations returns every safety violation observed so far. In a correct
+// Raft implementation it is always empty.
+func (c *Cluster) Violations() []Violation { return c.check.violations }
 
 func (c *Cluster) emit(id raft.NodeID, t raft.EventType) {
 	sn := c.node(id)
