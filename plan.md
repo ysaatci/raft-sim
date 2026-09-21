@@ -96,7 +96,7 @@ Makefile
 
 - [x] 2.1 `feat(sim): virtual clock + event queue` — deterministic priority queue by (time, seq)
 - [x] 2.2 `feat(sim): simulated network` — per-link latency, jitter, drop rate, partitions; seeded
-- [ ] 2.3 `feat(sim): cluster driver` — N nodes, ticks, message delivery, crash / restart / pause per node
+- [x] 2.3 `feat(sim): cluster driver` — N nodes, ticks, message delivery, crash / restart / pause per node
 - [ ] 2.4 `feat(sim): KV state machine` — `set k v` commands applied from committed entries
 - [ ] 2.5 `feat(sim): invariant checker` — Election Safety, Log Matching, Leader Completeness, State Machine Safety
 - [ ] 2.6 `test(sim): election + replication integration tests` — happy path, leader crash, re-election
