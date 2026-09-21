@@ -66,6 +66,7 @@ func (n *Node) becomeLeader() {
 	n.leader = n.id
 	n.votes = nil
 	n.resetTimers()
+	n.broadcastAppend() // assert leadership immediately
 }
 
 // quorum is the number of nodes that make a majority.

@@ -79,6 +79,7 @@ func NewNode(cfg Config) (*Node, error) {
 // Tick advances the node's logical clock by one tick.
 func (n *Node) Tick() {
 	if n.role == Leader {
+		n.tickLeader()
 		return
 	}
 	n.electionElapsed++
@@ -94,8 +95,11 @@ func (n *Node) Step(m Message) {
 		n.becomeFollower(m.Term, None)
 	case m.Term < n.term:
 		// Stale sender: reply so it learns the newer term and steps down.
-		if m.Type == MsgVote {
+		switch m.Type {
+		case MsgVote:
 			n.send(Message{Type: MsgVoteResp, To: m.From, Reject: true})
+		case MsgApp:
+			n.send(Message{Type: MsgAppResp, To: m.From, Reject: true})
 		}
 		return
 	}
@@ -105,6 +109,8 @@ func (n *Node) Step(m Message) {
 		n.handleVote(m)
 	case MsgVoteResp:
 		n.handleVoteResp(m)
+	case MsgApp:
+		n.handleApp(m)
 	}
 }
 
