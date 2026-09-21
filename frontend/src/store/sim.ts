@@ -23,6 +23,8 @@ export interface SimStore {
   selected: NodeID | null
   /** Nodes picked for one side of a partition being drawn, or null. */
   partitionDraft: NodeID[] | null
+  /** Furthest virtual time on the current timeline; the end of the scrubber. */
+  horizon: number
 
   init(client: SimulationClient, config?: Partial<Config>): Promise<void>
   play(): void
@@ -55,6 +57,7 @@ export function createSimStore() {
       set((s) => ({
         state: f.state,
         events: f.reset ? f.events.slice(-MAX_EVENTS) : [...s.events, ...f.events].slice(-MAX_EVENTS),
+        horizon: Math.max(s.horizon, f.state.time),
       }))
 
     // Requests run one at a time, in order: each waits for the previous one.
@@ -82,13 +85,22 @@ export function createSimStore() {
       selected: null,
       error: null,
       partitionDraft: null,
+      horizon: 0,
 
       async init(client, config) {
         get().client?.dispose()
         queue = Promise.resolve()
         pending = 0
         carry = 0
-        set({ client, state: null, events: [], error: null, selected: null, partitionDraft: null })
+        set({
+          client,
+          state: null,
+          events: [],
+          error: null,
+          selected: null,
+          partitionDraft: null,
+          horizon: 0,
+        })
         apply(await client.create(config))
       },
       play: () => set({ playing: true }),
@@ -113,8 +125,14 @@ export function createSimStore() {
       },
       async act(action) {
         try {
-          await run((c) => c.do(action))
-          set({ error: null })
+          let branched = false
+          await run((c) => {
+            const s = get()
+            branched = !!s.state && s.state.time < s.horizon
+            return c.do(action)
+          })
+          // Acting in the past starts a new branch: the recorded future is gone.
+          set(branched ? { error: null, horizon: get().state!.time } : { error: null })
           return true
         } catch (e) {
           set({ error: e instanceof Error ? e.message : String(e) })

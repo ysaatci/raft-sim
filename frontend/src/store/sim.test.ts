@@ -77,3 +77,14 @@ test('an action during an in-flight advance is queued, not dropped', async () =>
   expect(client.calls.slice(1)).toEqual(['advance 10', 'do {"kind":"crash","node":2}'])
   expect(s().state?.nodes[1].state).toBe('crashed')
 })
+
+test('the horizon tracks the furthest time and moves back when acting in the past', async () => {
+  await s().step(500)
+  await s().seek(200)
+  expect(s().state?.time).toBe(200)
+  expect(s().horizon).toBe(500)
+  await s().step(100) // replaying the recorded future keeps it
+  expect(s().horizon).toBe(500)
+  await s().act({ kind: 'crash', node: 2 }) // a new branch at 300
+  expect(s().horizon).toBe(300)
+})

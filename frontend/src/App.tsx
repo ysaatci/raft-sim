@@ -6,6 +6,8 @@ import { NetworkPanel } from '@/components/NetworkPanel'
 import { NodePanel } from '@/components/NodePanel'
 import { Packets } from '@/components/Packets'
 import { PlaybackControls } from '@/components/PlaybackControls'
+import { Timeline } from '@/components/Timeline'
+import { EventFeed } from '@/components/EventFeed'
 import { useSim } from '@/store/sim'
 import { useSimLoop } from '@/store/useSimLoop'
 
@@ -27,6 +29,7 @@ export default function App() {
         </div>
         <PlaybackControls />
       </header>
+      {state && <Timeline />}
       {state ? (
         <main className="grid flex-1 gap-6 p-6 lg:grid-cols-[1fr_320px]">
           <div className="mx-auto flex w-full max-w-[640px] flex-col gap-2">
@@ -53,6 +56,7 @@ export default function App() {
               </p>
             )}
             <NetworkPanel />
+            <EventFeed />
           </aside>
           <div className="lg:col-span-2">
             <LogGrid nodes={state.nodes} selected={selected} />
