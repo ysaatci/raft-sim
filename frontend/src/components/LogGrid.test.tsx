@@ -37,3 +37,23 @@ test('dims crashed nodes and explains an empty log', async () => {
   rerender(<LogGrid nodes={ns.map((n) => ({ ...n, log: [], lastIndex: 0 }))} />)
   expect(screen.getByText(/No entries yet/)).toBeInTheDocument()
 })
+
+test('follows the end of a growing log unless the user scrolled back', async () => {
+  const ns = await nodes()
+  const { rerender } = render(<LogGrid nodes={ns} />)
+  const scroller = screen.getByRole('table').parentElement!
+  let scrollWidth = 1000
+  Object.defineProperty(scroller, 'scrollWidth', { get: () => scrollWidth })
+  Object.defineProperty(scroller, 'clientWidth', { value: 300 })
+
+  const grow = (n: number) =>
+    rerender(<LogGrid nodes={ns.map((x) => ({ ...x, lastIndex: n, log: [...x.log] }))} />)
+  grow(10)
+  expect(scroller.scrollLeft).toBe(1000)
+
+  scroller.scrollLeft = 100 // the user scrolls back to read older entries
+  scroller.dispatchEvent(new Event('scroll'))
+  scrollWidth = 1200
+  grow(11)
+  expect(scroller.scrollLeft).toBe(100)
+})

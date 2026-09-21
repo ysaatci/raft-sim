@@ -55,3 +55,15 @@ test('typing in a field is not a shortcut', async () => {
   expect(s().playing).toBe(false)
   expect(s().selected).toBeNull()
 })
+
+test('shortcuts leave focused buttons and modifier combinations alone', async () => {
+  const button = document.createElement('button')
+  document.body.append(button)
+  button.focus()
+  await userEvent.keyboard(' ')
+  expect(s().playing).toBe(false)
+  button.remove()
+
+  await userEvent.keyboard('{Control>}2{/Control}')
+  expect(s().selected).toBeNull()
+})

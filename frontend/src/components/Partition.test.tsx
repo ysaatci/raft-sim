@@ -64,3 +64,10 @@ test('cancel leaves the network untouched; one side cannot be everything', async
   await userEvent.click(network().getByRole('button', { name: 'Cancel' }))
   expect(client.calls.some((c) => c.includes('partition'))).toBe(false)
 })
+
+test('links can be toggled from the keyboard', async () => {
+  render(<App />)
+  link(2, 3).focus()
+  await userEvent.keyboard('{Enter}')
+  expect(link(2, 3)).toHaveAccessibleName(/cut$/)
+})

@@ -56,3 +56,10 @@ test('writes go to the selected node; a follower rejects them with a toast', asy
   // A rejected write is not counted: the next attempt sends the same command.
   expect(screen.getByRole('button', { name: /Send write set y 2/ })).toBeInTheDocument()
 })
+
+test('the close button deselects the node', async () => {
+  render(<App />)
+  await userEvent.click(node(2))
+  await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+  expect(screen.queryByRole('region', { name: 'Node 2' })).toBeNull()
+})

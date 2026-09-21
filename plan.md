@@ -133,7 +133,7 @@ Makefile
 - [x] 5.7 `feat(fe): cluster settings` — size 3/5/7, seed, timing params, reset
 - [x] 5.8 `feat(fe): invariant badge` — live safety status
 - [x] 5.9 `style(fe): polish` — layout, responsive, keyboard shortcuts, empty/loading states
-- [ ] 5.10 `test(fe): component tests` — LogGrid, Inspector, controls
+- [x] 5.10 `test(fe): component tests` — LogGrid, Inspector, controls (written with each step); this step closes the coverage gaps: log auto-scroll, event texts, keyboard paths
 
 ## Milestone 6 — Scenarios + GitHub Pages
 
