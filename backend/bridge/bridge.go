@@ -6,6 +6,7 @@ package bridge
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/ysaatci/raft-sim/backend/sim"
 )
@@ -111,4 +112,25 @@ func (a *API) Actions() (string, error) {
 func marshal(v any) (string, error) {
 	b, err := json.Marshal(v)
 	return string(b), err
+}
+
+// Scenarios returns the built-in guided scenarios as JSON.
+func Scenarios() string {
+	b, _ := json.Marshal(sim.Scenarios())
+	return string(b)
+}
+
+// LoadScenario replaces the simulation with a built-in scenario, rewound
+// to its start with the whole script recorded.
+func (a *API) LoadScenario(id string) error {
+	sc, ok := sim.ScenarioByID(id)
+	if !ok {
+		return fmt.Errorf("bridge: no scenario %q", id)
+	}
+	s, err := sim.Load(sc)
+	if err != nil {
+		return err
+	}
+	a.sim = s
+	return nil
 }

@@ -23,6 +23,8 @@ func main() {
 		"state":         query(func([]js.Value) (string, error) { return api.State() }),
 		"events":        query(func(a []js.Value) (string, error) { return api.Events(a[0].Int()) }),
 		"actions":       query(func([]js.Value) (string, error) { return api.Actions() }),
+		"scenarios":     fn(func(js.Value, []js.Value) any { return bridge.Scenarios() }),
+		"loadScenario":  mutation(func(a []js.Value) error { return api.LoadScenario(a[0].String()) }),
 	}))
 	select {} // keep the Go runtime alive to serve calls
 }

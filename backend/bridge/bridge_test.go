@@ -127,3 +127,24 @@ func TestActionsJSON(t *testing.T) {
 		t.Fatalf("actions = %s", js)
 	}
 }
+
+func TestScenariosAndLoadScenario(t *testing.T) {
+	var list []sim.Scenario
+	if err := json.Unmarshal([]byte(Scenarios()), &list); err != nil || len(list) == 0 {
+		t.Fatalf("Scenarios() = %d scenarios, %v", len(list), err)
+	}
+	var a API
+	if err := a.LoadScenario("nope"); err == nil {
+		t.Fatal("unknown scenario loaded")
+	}
+	if err := a.LoadScenario(list[0].ID); err != nil {
+		t.Fatal(err)
+	}
+	if s := mustState(t, &a); s.Time != 0 || s.Config != list[0].Config {
+		t.Fatalf("loaded state: time %d, config %+v", s.Time, s.Config)
+	}
+	acts, _ := a.Actions()
+	if !strings.Contains(acts, `"kind":"propose"`) {
+		t.Fatalf("scenario script not recorded: %s", acts)
+	}
+}
