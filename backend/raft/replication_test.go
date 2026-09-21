@@ -399,3 +399,18 @@ func TestFollowersLearnCommitFromLeader(t *testing.T) {
 		}
 	}
 }
+
+func TestProgressOnlyOnLeader(t *testing.T) {
+	n := leaderNode(t)
+	next, match := n.Progress()
+	if next[2] != 1 || match[1] != 1 {
+		t.Fatalf("next=%v match=%v", next, match)
+	}
+	next[2] = 99
+	if n.next[2] == 99 {
+		t.Fatal("Progress must return copies")
+	}
+	if next, _ := newTestNode(t, 1, 3).Progress(); next != nil {
+		t.Fatal("follower reported progress")
+	}
+}

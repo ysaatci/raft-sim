@@ -23,13 +23,8 @@ const (
 )
 
 func (r Role) String() string {
-	switch r {
-	case Follower:
-		return "follower"
-	case Candidate:
-		return "candidate"
-	case Leader:
-		return "leader"
+	if s, ok := roleNames[r]; ok {
+		return s
 	}
 	return fmt.Sprintf("Role(%d)", int(r))
 }
@@ -52,15 +47,8 @@ const (
 )
 
 func (t MsgType) String() string {
-	switch t {
-	case MsgVote:
-		return "RequestVote"
-	case MsgVoteResp:
-		return "RequestVoteResp"
-	case MsgApp:
-		return "AppendEntries"
-	case MsgAppResp:
-		return "AppendEntriesResp"
+	if s, ok := msgTypeNames[t]; ok {
+		return s
 	}
 	return fmt.Sprintf("MsgType(%d)", int(t))
 }
@@ -136,4 +124,27 @@ func (c *Config) validate() error {
 		return errors.New("raft: Storage must be set")
 	}
 	return nil
+}
+
+var (
+	roleNames    = map[Role]string{Follower: "follower", Candidate: "candidate", Leader: "leader"}
+	msgTypeNames = map[MsgType]string{MsgVote: "RequestVote", MsgVoteResp: "RequestVoteResp", MsgApp: "AppendEntries", MsgAppResp: "AppendEntriesResp"}
+)
+
+func (r Role) MarshalText() ([]byte, error) { return []byte(r.String()), nil }
+
+func (r *Role) UnmarshalText(b []byte) error { return unmarshalName(roleNames, r, b) }
+
+func (t MsgType) MarshalText() ([]byte, error) { return []byte(t.String()), nil }
+
+func (t *MsgType) UnmarshalText(b []byte) error { return unmarshalName(msgTypeNames, t, b) }
+
+func unmarshalName[T comparable](names map[T]string, dst *T, b []byte) error {
+	for v, name := range names {
+		if name == string(b) {
+			*dst = v
+			return nil
+		}
+	}
+	return fmt.Errorf("raft: unknown name %q", b)
 }

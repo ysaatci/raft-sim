@@ -1,6 +1,9 @@
 package raft
 
-import "math/rand/v2"
+import (
+	"maps"
+	"math/rand/v2"
+)
 
 // Node is a single Raft participant. It is not safe for concurrent use;
 // the caller drives it from one goroutine via Tick, Step and Ready.
@@ -152,6 +155,15 @@ func (n *Node) Status() Status {
 		ElectionElapsed: n.electionElapsed,
 		ElectionTimeout: n.electionTimeout,
 	}
+}
+
+// Progress returns copies of a leader's nextIndex and matchIndex per peer,
+// or nil maps if the node is not the leader.
+func (n *Node) Progress() (next, match map[NodeID]uint64) {
+	if n.role != Leader {
+		return nil, nil
+	}
+	return maps.Clone(n.next), maps.Clone(n.match)
 }
 
 // Entries returns a copy of the node's log, starting at index 1.

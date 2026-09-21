@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand/v2"
+	"slices"
 
 	"github.com/ysaatci/raft-sim/backend/raft"
 )
@@ -59,7 +60,8 @@ type Flight struct {
 	ID        uint64       `json:"id"`
 	Msg       raft.Message `json:"msg"`
 	SentAt    Time         `json:"sentAt"`
-	DeliverAt Time         `json:"deliverAt"`
+	DeliverAt Time         `json:"deliverAt"` // for a dropped message: when it would have arrived
+	Dropped   bool         `json:"dropped,omitempty"`
 }
 
 type simNode struct {
@@ -81,6 +83,7 @@ type Cluster struct {
 	net      *Network
 	nodes    []*simNode // nodes[i] has ID i+1
 	inflight queue[*Flight]
+	dropped  []*Flight // lost messages, kept until they would have arrived
 	nextID   uint64
 	events   []TimedEvent
 	check    *checker
@@ -149,6 +152,7 @@ func (c *Cluster) Advance(ms Time) {
 		c.deliverDue()
 		c.tickDue()
 	}
+	c.dropped = slices.DeleteFunc(c.dropped, func(f *Flight) bool { return f.DeliverAt < c.now })
 	c.checkLogs()
 }
 
@@ -188,8 +192,12 @@ func (c *Cluster) collect(sn *simNode) {
 	rd := sn.node.Ready()
 	for _, m := range rd.Messages {
 		c.nextID++
-		if at, ok := c.net.route(m.From, m.To, c.now); ok {
-			c.inflight.push(at, &Flight{ID: c.nextID, Msg: m, SentAt: c.now, DeliverAt: at})
+		at, ok := c.net.route(m.From, m.To, c.now)
+		f := &Flight{ID: c.nextID, Msg: m, SentAt: c.now, DeliverAt: at, Dropped: !ok}
+		if ok {
+			c.inflight.push(at, f)
+		} else {
+			c.dropped = append(c.dropped, f)
 		}
 	}
 	for _, e := range rd.CommittedEntries {

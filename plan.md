@@ -102,7 +102,7 @@ Makefile
 - [x] 2.6 `test(sim): election + replication integration tests` — happy path, leader crash, re-election
 - [x] 2.7 `test(sim): randomized chaos tests` — many seeds of random crashes/partitions/drops; failure prints seed; `-seeds` flag
 - [x] 2.8 `test(sim): fuzz cluster actions` — `go test -fuzz` over random action sequences (no panics, invariants hold). Fuzzing raw `Step` with forged messages only trips the core's deliberate safety panics, so the fuzzer drives whole clusters instead
-- [ ] 2.9 `feat(sim): snapshot/serialize state` — full cluster view for UI (roles, terms, logs, indices, in-flight msgs)
+- [x] 2.9 `feat(sim): snapshot/serialize state` — full cluster view for UI (roles, terms, logs, indices, in-flight msgs)
 - [ ] 2.10 `feat(sim): history + rewind` — record checkpoints, step back/forward
 
 ## Milestone 3 — WASM bridge

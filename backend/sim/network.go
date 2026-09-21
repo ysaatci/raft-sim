@@ -74,19 +74,20 @@ func (n *Network) setCut(from, to raft.NodeID, cut bool) {
 	n.SetLink(from, to, cfg)
 }
 
-// route decides the fate of a message sent at now: its delivery time, or
-// false if it is lost.
+// route decides the fate of a message sent at now. It returns when the
+// message arrives, or would have arrived, and whether it is delivered.
 func (n *Network) route(from, to raft.NodeID, now Time) (Time, bool) {
 	cfg := n.Link(from, to)
-	if cfg.Cut {
-		return 0, false
-	}
-	if cfg.DropRate > 0 && n.rand.Float64() < cfg.DropRate {
-		return 0, false
-	}
 	delay := cfg.LatencyMs
 	if cfg.JitterMs > 0 {
 		delay += n.rand.IntN(2*cfg.JitterMs+1) - cfg.JitterMs
 	}
-	return now + Time(max(delay, 1)), true
+	at := now + Time(max(delay, 1))
+	if cfg.Cut {
+		return at, false
+	}
+	if cfg.DropRate > 0 && n.rand.Float64() < cfg.DropRate {
+		return at, false
+	}
+	return at, true
 }

@@ -1,7 +1,10 @@
 package raft
 
 import (
+	"encoding/json"
 	"math/rand/v2"
+	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -26,5 +29,34 @@ func TestConfigValidate(t *testing.T) {
 		if c.validate() == nil {
 			t.Errorf("%s: expected error", name)
 		}
+	}
+}
+
+func TestMessageJSONRoundTrip(t *testing.T) {
+	m := Message{Type: MsgAppResp, From: 1, To: 2, Term: 3, Reject: true, ConflictIndex: 4}
+	b, err := json.Marshal(m)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(b), `"type":"AppendEntriesResp"`) {
+		t.Fatalf("type not encoded by name: %s", b)
+	}
+	var got Message
+	if err := json.Unmarshal(b, &got); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(got, m) {
+		t.Fatalf("round trip = %+v, want %+v", got, m)
+	}
+}
+
+func TestRoleJSON(t *testing.T) {
+	b, _ := json.Marshal(Status{Role: Leader})
+	if !strings.Contains(string(b), `"role":"leader"`) {
+		t.Fatalf("role not encoded by name: %s", b)
+	}
+	var r Role
+	if err := json.Unmarshal([]byte(`"bogus"`), &r); err == nil {
+		t.Fatal("unknown role accepted")
 	}
 }
