@@ -64,7 +64,7 @@ Makefile
 | Fault injection (cluster mode) | App-level `/chaos` endpoint per node, not Docker network tricks |
 | Frontend | React 18, Vite, TypeScript, Tailwind, shadcn/ui, Framer Motion, Zustand |
 | Tests | Go `testing` + fuzzing; Vitest + React Testing Library; Playwright smoke |
-| PreVote / CheckQuorum | Milestone 7 (after core is proven), enables the "disruptive rejoin" scenario |
+| PreVote / CheckQuorum | Milestone 8 (after core is proven), enables the "disruptive rejoin" scenario |
 
 ---
 
@@ -72,7 +72,7 @@ Makefile
 
 - [x] 0.1 `docs: add build plan` — plan.md, README stub, .gitignore, LICENSE (MIT)
 - [x] 0.2 `chore: init go module` — `backend/go.mod`, empty `raft` package with doc.go
-- [ ] 0.3 `chore: add Makefile` — targets: `test`, `wasm`, `fe-dev`, `fe-build`, `up`
+- [x] 0.3 `chore: add Makefile` — targets: `test`, `wasm`, `fe-dev`, `fe-build`, `up`
 
 ## Milestone 1 — Raft core (pure, deterministic)
 
