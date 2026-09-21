@@ -9,6 +9,7 @@ func (n *Node) campaign() {
 	n.leader = None
 	n.persist()
 	n.resetTimers()
+	n.emit(Event{Type: EventElectionStarted})
 	n.votes = map[NodeID]bool{n.id: true}
 	if n.quorum() == 1 { // single-node cluster
 		n.becomeLeader()
@@ -40,6 +41,7 @@ func (n *Node) handleVote(m Message) {
 	n.votedFor = m.From
 	n.persist()
 	n.resetTimers() // granting a vote defers our own candidacy
+	n.emit(Event{Type: EventVoteGranted, Peer: m.From})
 	n.send(Message{Type: MsgVoteResp, To: m.From})
 }
 
@@ -64,6 +66,7 @@ func (n *Node) handleVoteResp(m Message) {
 func (n *Node) becomeLeader() {
 	n.role = Leader
 	n.leader = n.id
+	n.emit(Event{Type: EventBecameLeader})
 	n.votes = nil
 	n.resetTimers()
 	// Optimistically assume followers match our log; rejections walk back.

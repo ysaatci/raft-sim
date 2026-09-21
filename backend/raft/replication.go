@@ -111,6 +111,7 @@ func (n *Node) handleApp(m Message) {
 				panic("raft: conflicting entry below commit index")
 			}
 			n.log.truncateFrom(e.Index)
+			n.emit(Event{Type: EventLogTruncated, Index: e.Index})
 		}
 		n.log.append(m.Entries[i:]...)
 		must(n.storage.Append(m.Entries[i:]))
@@ -119,8 +120,7 @@ func (n *Node) handleApp(m Message) {
 
 	lastNew := m.PrevLogIndex + uint64(len(m.Entries))
 	if c := min(m.Commit, lastNew); c > n.commit {
-		n.commit = c
-		n.persist()
+		n.setCommit(c)
 	}
 	n.send(Message{Type: MsgAppResp, To: m.From, MatchIndex: lastNew})
 }
@@ -153,8 +153,7 @@ func (n *Node) maybeCommit() {
 			}
 		}
 		if replicas >= n.quorum() {
-			n.commit = i
-			n.persist()
+			n.setCommit(i)
 			return
 		}
 	}

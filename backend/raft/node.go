@@ -31,7 +31,8 @@ type Node struct {
 	next  map[NodeID]uint64
 	match map[NodeID]uint64
 
-	msgs []Message
+	msgs   []Message
+	events []Event
 }
 
 // Ready holds the output a node has produced since the last call to Ready.
@@ -40,6 +41,8 @@ type Ready struct {
 	Messages []Message
 	// CommittedEntries must be applied to the state machine, in order.
 	CommittedEntries []Entry
+	// Events describe state changes, in order, for observers such as the UI.
+	Events []Event
 }
 
 // Status is a read-only snapshot of a node's state.
@@ -126,8 +129,10 @@ func (n *Node) Ready() Ready {
 	rd := Ready{
 		Messages:         n.msgs,
 		CommittedEntries: n.log.slice(n.applied+1, n.commit+1),
+		Events:           n.events,
 	}
 	n.msgs = nil
+	n.events = nil
 	n.applied = n.commit
 	return rd
 }
@@ -155,9 +160,19 @@ func (n *Node) becomeFollower(term uint64, leader NodeID) {
 		n.votedFor = None
 		n.persist()
 	}
+	if n.role != Follower {
+		n.emit(Event{Type: EventSteppedDown})
+	}
 	n.role = Follower
 	n.leader = leader
 	n.resetTimers()
+}
+
+// setCommit advances the commit index.
+func (n *Node) setCommit(c uint64) {
+	n.commit = c
+	n.persist()
+	n.emit(Event{Type: EventCommitAdvanced, Index: c})
 }
 
 func (n *Node) resetTimers() {
