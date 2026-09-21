@@ -71,7 +71,7 @@ Makefile
 ## Milestone 0 — Repo bootstrap
 
 - [x] 0.1 `docs: add build plan` — plan.md, README stub, .gitignore, LICENSE (MIT)
-- [ ] 0.2 `chore: init go module` — `backend/go.mod`, empty `raft` package with doc.go
+- [x] 0.2 `chore: init go module` — `backend/go.mod`, empty `raft` package with doc.go
 - [ ] 0.3 `chore: add Makefile` — targets: `test`, `wasm`, `fe-dev`, `fe-build`, `up`
 
 ## Milestone 1 — Raft core (pure, deterministic)
