@@ -88,3 +88,27 @@ test('the horizon tracks the furthest time and moves back when acting in the pas
   await s().act({ kind: 'crash', node: 2 }) // a new branch at 300
   expect(s().horizon).toBe(300)
 })
+
+test('reset starts over on the same client', async () => {
+  await s().step(500)
+  s().select(2)
+  await s().reset({ size: 5, seed: 7 })
+  expect(client.calls.at(-1)).toBe('create {"size":5,"seed":7}')
+  expect(client.calls).not.toContain('dispose')
+  expect(s().state?.time).toBe(0)
+  expect(s().state?.nodes).toHaveLength(5)
+  expect(s().horizon).toBe(0)
+  expect(s().selected).toBeNull()
+  await s().reset() // keeps the current config
+  expect(JSON.parse(client.calls.at(-1)!.slice('create '.length)).seed).toBe(7)
+})
+
+test('reset during an in-flight advance still starts from zero', async () => {
+  s().play()
+  s().setSpeed(1)
+  const tick = s().tick(40)
+  const reset = s().reset()
+  await Promise.all([tick, reset])
+  expect(s().state?.time).toBe(0)
+  expect(s().horizon).toBe(0)
+})

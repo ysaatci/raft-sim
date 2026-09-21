@@ -27,6 +27,8 @@ export interface SimStore {
   horizon: number
 
   init(client: SimulationClient, config?: Partial<Config>): Promise<void>
+  /** Starts over on the same client, with a new or the current config. */
+  reset(config?: Partial<Config>): Promise<void>
   play(): void
   pause(): void
   setSpeed(speed: number): void
@@ -102,6 +104,15 @@ export function createSimStore() {
           horizon: 0,
         })
         apply(await client.create(config))
+      },
+      async reset(config) {
+        const cfg = config ?? get().state?.config
+        carry = 0
+        await run((c) => {
+          // Clear inside the queue, after any in-flight request has landed.
+          set({ events: [], selected: null, partitionDraft: null, horizon: 0, error: null })
+          return c.create(cfg)
+        })
       },
       play: () => set({ playing: true }),
       pause: () => set({ playing: false }),

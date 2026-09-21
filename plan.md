@@ -130,7 +130,7 @@ Makefile
 - [x] 5.4 `feat(fe): partitions` — click links to cut; partition tool (click nodes to pick one side, then apply; clearer and keyboard/touch friendly than dragging); heal all
 - [x] 5.5 `feat(fe): network controls` — latency / jitter / drop sliders (global + per link)
 - [x] 5.6 `feat(fe): timeline + event feed` — scrubber using sim history, filterable event list
-- [ ] 5.7 `feat(fe): cluster settings` — size 3/5/7, seed, timing params, reset
+- [x] 5.7 `feat(fe): cluster settings` — size 3/5/7, seed, timing params, reset
 - [ ] 5.8 `feat(fe): invariant badge` — live safety status
 - [ ] 5.9 `style(fe): polish` — layout, responsive, keyboard shortcuts, empty/loading states
 - [ ] 5.10 `test(fe): component tests` — LogGrid, Inspector, controls

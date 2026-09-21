@@ -1,4 +1,4 @@
-import { Pause, Play, StepForward } from 'lucide-react'
+import { Pause, Play, RotateCcw, StepForward } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SPEEDS, useSim } from '@/store/sim'
 import { cn } from '@/lib/utils'
@@ -9,7 +9,7 @@ export function PlaybackControls() {
   const playing = useSim((s) => s.playing)
   const speed = useSim((s) => s.speed)
   const time = useSim((s) => s.state?.time ?? 0)
-  const { play, pause, step, setSpeed } = useSim((s) => s)
+  const { play, pause, step, setSpeed, reset } = useSim((s) => s)
 
   return (
     <div className="flex items-center gap-3">
@@ -30,6 +30,9 @@ export function PlaybackControls() {
         aria-label="Step 10ms"
       >
         <StepForward />
+      </Button>
+      <Button size="icon" variant="outline" onClick={() => reset()} aria-label="Reset">
+        <RotateCcw />
       </Button>
       <div className="flex rounded-lg border p-0.5" role="group" aria-label="Speed">
         {SPEEDS.map((s) => (

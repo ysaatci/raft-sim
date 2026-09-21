@@ -1,4 +1,5 @@
 import { ClusterRing } from '@/components/ClusterRing'
+import { ClusterSettings } from '@/components/ClusterSettings'
 import { ErrorToast } from '@/components/ErrorToast'
 import { Legend } from '@/components/Legend'
 import { LogGrid } from '@/components/LogGrid'
@@ -57,6 +58,7 @@ export default function App() {
             )}
             <NetworkPanel />
             <EventFeed />
+            <ClusterSettings key={JSON.stringify(state.config)} config={state.config} />
           </aside>
           <div className="lg:col-span-2">
             <LogGrid nodes={state.nodes} selected={selected} />
