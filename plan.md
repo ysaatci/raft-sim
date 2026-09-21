@@ -118,7 +118,7 @@ Makefile
 - [x] 4.3 `feat(fe): SimulationClient interface + MockClient` — TS types mirroring Go state
 - [x] 4.4 `feat(fe): web worker + WasmClient` — load wasm in worker, message protocol
 - [x] 4.5 `feat(fe): zustand store + sim loop` — play/pause/step/speed driving the client
-- [ ] 4.6 `feat(fe): ClusterRing` — SVG ring, role colors, term badge, election-timeout progress ring
+- [x] 4.6 `feat(fe): ClusterRing` — SVG ring, role colors, term badge, election-timeout progress ring
 - [ ] 4.7 `feat(fe): node actions` — click node: crash / restart / pause; client write to node
 - [ ] 4.8 `test(fe): store + ClusterRing tests` — against MockClient
 
