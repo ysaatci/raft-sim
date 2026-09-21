@@ -23,3 +23,18 @@ func (n *Node) campaign() {
 		})
 	}
 }
+
+// handleVote answers a RequestVote from a candidate in our current term.
+// We grant at most one vote per term, and only to a candidate whose log is
+// at least as up-to-date as ours (Raft §5.2, §5.4.1).
+func (n *Node) handleVote(m Message) {
+	canVote := n.votedFor == None || n.votedFor == m.From
+	if !canVote || !n.log.isUpToDate(m.LastLogIndex, m.LastLogTerm) {
+		n.send(Message{Type: MsgVoteResp, To: m.From, Reject: true})
+		return
+	}
+	n.votedFor = m.From
+	n.persist()
+	n.resetTimers() // granting a vote defers our own candidacy
+	n.send(Message{Type: MsgVoteResp, To: m.From})
+}

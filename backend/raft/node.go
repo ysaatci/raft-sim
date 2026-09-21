@@ -89,8 +89,20 @@ func (n *Node) Tick() {
 
 // Step processes a message from another node.
 func (n *Node) Step(m Message) {
-	if m.Term > n.term {
+	switch {
+	case m.Term > n.term:
 		n.becomeFollower(m.Term, None)
+	case m.Term < n.term:
+		// Stale sender: reply so it learns the newer term and steps down.
+		if m.Type == MsgVote {
+			n.send(Message{Type: MsgVoteResp, To: m.From, Reject: true})
+		}
+		return
+	}
+
+	switch m.Type {
+	case MsgVote:
+		n.handleVote(m)
 	}
 }
 

@@ -81,3 +81,98 @@ func TestCampaignPersistsVote(t *testing.T) {
 		t.Fatalf("persisted %+v, want term 1 votedFor 1", hs)
 	}
 }
+
+func voteReq(from NodeID, term, lastIndex, lastTerm uint64) Message {
+	return Message{Type: MsgVote, From: from, To: 1, Term: term, LastLogIndex: lastIndex, LastLogTerm: lastTerm}
+}
+
+// onlyMsg returns the single message the node has sent, failing otherwise.
+func onlyMsg(t *testing.T, n *Node) Message {
+	t.Helper()
+	msgs := n.Ready().Messages
+	if len(msgs) != 1 {
+		t.Fatalf("got %d messages, want 1: %+v", len(msgs), msgs)
+	}
+	return msgs[0]
+}
+
+func TestVoteGrantedToUpToDateCandidate(t *testing.T) {
+	s := NewMemoryStorage()
+	n := newTestNodeWithStorage(t, 1, 3, s)
+	n.Step(voteReq(2, 1, 0, 0))
+	resp := onlyMsg(t, n)
+	if resp.Type != MsgVoteResp || resp.To != 2 || resp.Term != 1 || resp.Reject {
+		t.Fatalf("resp = %+v, want granted vote", resp)
+	}
+	if hs, _, _ := s.InitialState(); hs.VotedFor != 2 {
+		t.Fatalf("vote not persisted: %+v", hs)
+	}
+}
+
+func TestOneVotePerTerm(t *testing.T) {
+	n := newTestNode(t, 1, 3)
+	n.Step(voteReq(2, 1, 0, 0))
+	n.Ready()
+	n.Step(voteReq(3, 1, 0, 0))
+	if resp := onlyMsg(t, n); !resp.Reject {
+		t.Fatal("second candidate in same term got a vote")
+	}
+	// A retransmitted request from the candidate we voted for is granted again.
+	n.Step(voteReq(2, 1, 0, 0))
+	if resp := onlyMsg(t, n); resp.Reject {
+		t.Fatal("repeat request from same candidate rejected")
+	}
+}
+
+func TestVoteRejectedForStaleTerm(t *testing.T) {
+	n := newTestNode(t, 1, 3)
+	n.Step(voteReq(2, 5, 0, 0))
+	n.Ready()
+	n.Step(voteReq(3, 4, 0, 0))
+	resp := onlyMsg(t, n)
+	if !resp.Reject || resp.Term != 5 {
+		t.Fatalf("resp = %+v, want reject carrying term 5", resp)
+	}
+}
+
+func TestVoteRejectedWhenCandidateLogBehind(t *testing.T) {
+	cases := map[string]struct{ lastIndex, lastTerm uint64 }{
+		"lower last term":        {5, 1},
+		"same term, shorter log": {1, 2},
+	}
+	for name, c := range cases {
+		t.Run(name, func(t *testing.T) {
+			n := newTestNode(t, 1, 3)
+			n.log = logWithTerms(1, 2) // last = (2, 2)
+			n.Step(voteReq(2, 3, c.lastIndex, c.lastTerm))
+			if resp := onlyMsg(t, n); !resp.Reject {
+				t.Fatal("vote granted to candidate with stale log")
+			}
+			if n.Status().Term != 3 {
+				t.Fatal("higher term should still be adopted")
+			}
+		})
+	}
+}
+
+func TestHigherTermVoteMakesCandidateStepDown(t *testing.T) {
+	n := newTestNode(t, 1, 3)
+	tickUntil(t, n, 20, func() bool { return n.Status().Role == Candidate })
+	n.Ready()
+	n.Step(voteReq(2, 2, 0, 0))
+	st := n.Status()
+	if st.Role != Follower || st.Term != 2 || st.VotedFor != 2 {
+		t.Fatalf("status = %+v, want follower in term 2 voting for 2", st)
+	}
+}
+
+func TestGrantingVoteResetsElectionTimer(t *testing.T) {
+	n := newTestNode(t, 1, 3)
+	for range 5 {
+		n.Tick()
+	}
+	n.Step(voteReq(2, 1, 0, 0))
+	if n.Status().ElectionElapsed != 0 {
+		t.Fatal("election timer not reset after granting vote")
+	}
+}
