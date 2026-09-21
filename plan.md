@@ -109,7 +109,7 @@ Makefile
 
 - [x] 3.1 `feat(wasm): js bridge` — `raftSim.create(config)`, `step(n)`, `crash(id)`, `restart(id)`, `setLink(...)`, `propose(...)`, `state()`, `events()`
 - [x] 3.2 `chore: wasm build target` — `GOOS=js GOARCH=wasm`, copy `wasm_exec.js` + `raft.wasm` into `frontend/public`
-- [ ] 3.3 `test(wasm): bridge smoke test` — node-based test of the compiled WASM (runs in CI)
+- [x] 3.3 `test(wasm): bridge smoke test` — node-based test of the compiled WASM (runs in CI)
 
 ## Milestone 4 — Frontend foundation
 
