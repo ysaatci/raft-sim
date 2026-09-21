@@ -138,7 +138,7 @@ Makefile
 ## Milestone 6 — Scenarios + GitHub Pages
 
 - [x] 6.1 `feat(sim): scenario DSL` — scripted actions at ticks (crash, partition, propose, heal)
-- [ ] 6.2 `feat(sim): scenarios` — normal replication, leader crash, split vote, minority partition, divergent logs, packet loss, crash during replication
+- [x] 6.2 `feat(sim): scenarios` — normal replication, leader crash, split vote, minority partition, divergent logs, packet loss, crash during replication
 - [ ] 6.3 `test(sim): scenario outcome tests` — each preset asserts its expected result
 - [ ] 6.4 `feat(fe): scenario picker + narration` — guided step-by-step captions
 - [ ] 6.5 `feat(fe): shareable URLs` — seed + scenario + config in URL hash

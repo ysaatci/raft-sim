@@ -10,12 +10,13 @@ import (
 )
 
 // Step is one moment of a scripted scenario: an optional action and the
-// narration shown from that moment on.
+// narration shown from that moment on (empty: the previous one stays).
 //
 // Targets name nodes by role, because which node leads depends on the run:
 //
 //	"leader"      the current leader (highest term, if several think they lead)
 //	"follower:K"  the K-th running non-leader, counting from 1 in ID order
+//	"crashed:K"   the K-th crashed node, in ID order
 //	"node:N"      node N
 type Step struct {
 	At        Time        `json:"at"`
@@ -119,6 +120,19 @@ func target(c *Cluster, t string) (raft.NodeID, error) {
 		leader := c.Leader()
 		for _, sn := range c.running() {
 			if sn.id != leader {
+				if k--; k == 0 {
+					return sn.id, nil
+				}
+			}
+		}
+		return raft.None, fmt.Errorf("no %s at %dms", t, c.Now())
+	case "crashed":
+		k, err := strconv.Atoi(arg)
+		if err != nil || k < 1 {
+			return raft.None, fmt.Errorf("bad target %q", t)
+		}
+		for _, sn := range c.nodes {
+			if sn.state == NodeCrashed {
 				if k--; k == 0 {
 					return sn.id, nil
 				}

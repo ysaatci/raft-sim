@@ -19,7 +19,11 @@ func TestTargetsResolveByRole(t *testing.T) {
 			t.Errorf("target(%q) = %d, %v; want %d", tgt, got, err, want)
 		}
 	}
-	for _, bad := range []string{"follower:5", "follower:0", "follower:x", "node:x", "boss"} {
+	c.Crash(followers[2])
+	if got, err := target(c, "crashed:1"); err != nil || got != followers[2] {
+		t.Errorf("crashed:1 = %d, %v; want %d", got, err, followers[2])
+	}
+	for _, bad := range []string{"follower:5", "follower:0", "follower:x", "node:x", "crashed:2", "boss"} {
 		if _, err := target(c, bad); err == nil {
 			t.Errorf("target(%q) should fail", bad)
 		}
@@ -100,5 +104,27 @@ func TestLoadRejectsBrokenScripts(t *testing.T) {
 	sc.Steps = []Step{{At: 500}, {At: 100}}
 	if _, err := Load(sc); err == nil || !strings.Contains(err.Error(), "back in time") {
 		t.Errorf("err = %v, want back in time", err)
+	}
+}
+
+func TestBuiltInScenariosLoad(t *testing.T) {
+	seen := map[string]bool{}
+	for _, sc := range Scenarios() {
+		if seen[sc.ID] {
+			t.Errorf("duplicate scenario ID %q", sc.ID)
+		}
+		seen[sc.ID] = true
+		if sc.Title == "" || sc.Summary == "" || sc.Steps[0].At != 0 || sc.Steps[0].Narration == "" {
+			t.Errorf("%s: needs a title, a summary and narration at t=0", sc.ID)
+		}
+		if _, err := Load(sc); err != nil {
+			t.Errorf("%s: %v", sc.ID, err)
+		}
+	}
+	if _, ok := ScenarioByID("leader-crash"); !ok {
+		t.Error("ScenarioByID(leader-crash) not found")
+	}
+	if _, ok := ScenarioByID("nope"); ok {
+		t.Error("ScenarioByID(nope) found")
 	}
 }
