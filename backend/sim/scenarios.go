@@ -71,7 +71,7 @@ func Scenarios() []Scenario {
 				{At: 600, Narration: "", Kind: ActPropose, Target: "leader", Data: "set x original"},
 				{At: 1000, Narration: "The network splits: the leader and one follower on one side, three nodes on the other.", Kind: ActPartition, Side: []string{"leader", "follower:1"}},
 				{At: 1100, Narration: "The old leader doesn't know it is cut off and still accepts a write. It can only reach one follower, never a majority, so the entry stays uncommitted (outlined).", Kind: ActPropose, Target: "leader", Data: "set x stale"},
-				{At: 1400, Narration: "On the majority side the heartbeats stopped. A follower times out and wins an election in a higher term: two nodes now think they lead, in different terms."},
+				{At: 1400, Narration: "On the majority side the heartbeats stopped, so followers time out and run for leader. Here the first rounds split the vote; after a few terms one candidate wins. Two nodes now think they lead, in different terms."},
 				{At: 2000, Narration: "The new leader commits writes normally, because it can reach a majority.", Kind: ActPropose, Target: "leader", Data: "set x fresh"},
 				{At: 2600, Narration: "The partition heals. The old leader sees the higher term and steps down, and its uncommitted entry is overwritten by the new leader's log. No committed data was lost.", Kind: ActHeal},
 			},

@@ -160,6 +160,9 @@ func TestScenarioMinorityPartition(t *testing.T) {
 	if st := statusAt(t, s, 2000, fresh.Node); st.Role != raft.Leader || st.Term <= statusAt(t, s, 2000, old).Term {
 		t.Errorf("at 2000ms the new leader should lead a higher term: %+v", st)
 	}
+	if st := statusAt(t, s, 2000, fresh.Node); st.Term < 3 {
+		t.Errorf("narration says the first rounds split, but the new leader won term %d", st.Term)
+	}
 }
 
 func TestScenarioDivergentLogs(t *testing.T) {
