@@ -26,6 +26,11 @@ type Node struct {
 
 	votes map[NodeID]bool // candidate only: who has granted us a vote
 
+	// Leader only: next index to send to each peer, and the highest index
+	// known to be replicated on each peer (including ourselves).
+	next  map[NodeID]uint64
+	match map[NodeID]uint64
+
 	msgs []Message
 }
 
@@ -111,6 +116,8 @@ func (n *Node) Step(m Message) {
 		n.handleVoteResp(m)
 	case MsgApp:
 		n.handleApp(m)
+	case MsgAppResp:
+		n.handleAppResp(m)
 	}
 }
 

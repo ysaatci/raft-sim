@@ -86,7 +86,7 @@ Makefile
 - [x] 1.8 `feat(raft): heartbeats` — leader sends empty AppendEntries on heartbeat interval; followers reset timer; tests
 - [x] 1.9 `feat(raft): client proposals` — `Propose(data)` on leader, reject/redirect on follower (leader hint); tests
 - [x] 1.10 `feat(raft): AppendEntries consistency check` — prevLogIndex/Term match, conflict truncation, append; tests
-- [ ] 1.11 `feat(raft): nextIndex/matchIndex + conflict backtracking` — fast backup via conflict term/index hints; tests
+- [x] 1.11 `feat(raft): nextIndex/matchIndex + conflict backtracking` — fast backup via conflict term/index hints; tests
 - [ ] 1.12 `feat(raft): commit rule` — majority matchIndex, **only current-term entries**; Figure-8 regression test
 - [ ] 1.13 `feat(raft): apply committed entries` — lastApplied, expose in Ready; tests
 - [ ] 1.14 `feat(raft): restart from storage` — node rebuilds from HardState + log; tests

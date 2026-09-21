@@ -31,4 +31,5 @@ func (n *Node) appendEntry(data string) {
 	e := Entry{Term: n.term, Index: n.log.lastIndex() + 1, Data: data}
 	n.log.append(e)
 	must(n.storage.Append([]Entry{e}))
+	n.match[n.id] = e.Index
 }

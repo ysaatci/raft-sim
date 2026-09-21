@@ -18,8 +18,57 @@ func (n *Node) broadcastAppend() {
 	}
 }
 
+// sendAppend sends peer `to` every entry from its nextIndex onwards. With
+// nothing new to send it doubles as a heartbeat.
 func (n *Node) sendAppend(to NodeID) {
-	n.send(Message{Type: MsgApp, To: to})
+	prev := n.next[to] - 1
+	prevTerm, _ := n.log.term(prev)
+	n.send(Message{
+		Type:         MsgApp,
+		To:           to,
+		PrevLogIndex: prev,
+		PrevLogTerm:  prevTerm,
+		Entries:      n.log.slice(prev+1, n.log.lastIndex()+1),
+		Commit:       n.commit,
+	})
+}
+
+// handleAppResp updates a follower's progress, or backs its nextIndex up
+// after a failed consistency check and retries.
+func (n *Node) handleAppResp(m Message) {
+	if n.role != Leader {
+		return
+	}
+	from := m.From
+	if !m.Reject {
+		if m.MatchIndex > n.match[from] {
+			n.match[from] = m.MatchIndex
+		}
+		n.next[from] = max(n.next[from], n.match[from]+1)
+		if n.next[from] <= n.log.lastIndex() {
+			n.sendAppend(from) // still behind: keep going
+		}
+		return
+	}
+
+	prev := n.next[from] - 1
+	if m.PrevLogIndex != prev {
+		return // answer to an older request; its hint is outdated
+	}
+	next := m.ConflictIndex
+	if m.ConflictTerm != 0 {
+		// If we have entries from the follower's conflicting term, resume
+		// right after our last one; otherwise skip the whole term.
+		for i := n.log.lastIndex(); i > 0; i-- {
+			if t, _ := n.log.term(i); t == m.ConflictTerm {
+				next = i + 1
+				break
+			}
+		}
+	}
+	// Always make progress backwards, but never below what is known to match.
+	n.next[from] = max(min(next, prev), n.match[from]+1)
+	n.sendAppend(from)
 }
 
 // handleApp processes AppendEntries from the leader of our current term

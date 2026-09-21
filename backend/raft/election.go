@@ -66,6 +66,12 @@ func (n *Node) becomeLeader() {
 	n.leader = n.id
 	n.votes = nil
 	n.resetTimers()
+	// Optimistically assume followers match our log; rejections walk back.
+	n.next = map[NodeID]uint64{}
+	n.match = map[NodeID]uint64{}
+	for _, p := range n.peers {
+		n.next[p] = n.log.lastIndex() + 1
+	}
 	// A no-op entry in the new term lets the leader commit entries left
 	// over from earlier terms (Raft §8) and asserts leadership at once.
 	n.appendEntry("")
