@@ -62,3 +62,15 @@ jobs:
         run: npx vitest --run
       - name: build
         run: npm run build
+      - name: install Playwright browser
+        run: npx playwright install --with-deps chromium
+      - name: end-to-end smoke tests
+        run: npm run e2e
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+          retention-days: 7

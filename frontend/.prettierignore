@@ -1,3 +1,5 @@
 public/wasm_exec.js
 dist
 coverage
+test-results
+playwright-report
