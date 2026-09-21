@@ -116,7 +116,7 @@ Makefile
 - [x] 4.1 `chore(fe): scaffold vite react-ts` — oxlint (template default), Prettier, Vitest config; npm scripts build the WASM before dev/build
 - [x] 4.2 `chore(fe): tailwind + shadcn/ui + dark theme tokens`
 - [x] 4.3 `feat(fe): SimulationClient interface + MockClient` — TS types mirroring Go state
-- [ ] 4.4 `feat(fe): web worker + WasmClient` — load wasm in worker, message protocol
+- [x] 4.4 `feat(fe): web worker + WasmClient` — load wasm in worker, message protocol
 - [ ] 4.5 `feat(fe): zustand store + sim loop` — play/pause/step/speed driving the client
 - [ ] 4.6 `feat(fe): ClusterRing` — SVG ring, role colors, term badge, election-timeout progress ring
 - [ ] 4.7 `feat(fe): node actions` — click node: crash / restart / pause; client write to node
