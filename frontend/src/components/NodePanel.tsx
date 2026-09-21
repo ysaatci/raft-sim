@@ -1,6 +1,7 @@
 import { Pause, Play, Power, PowerOff, Send, X } from 'lucide-react'
 import { useState } from 'react'
 import type { NodeView } from '@/client/types'
+import { Inspector } from '@/components/Inspector'
 import { Button } from '@/components/ui/button'
 import { nodeColor, nodeStatus } from '@/lib/cluster'
 import { useSim } from '@/store/sim'
@@ -66,6 +67,7 @@ export function NodePanel({ node: n }: { node: NodeView }) {
       <Button variant="secondary" disabled={n.state !== 'up'} onClick={send}>
         <Send /> Send write <code className="font-mono text-xs text-muted-foreground">{command}</code>
       </Button>
+      <Inspector node={n} />
     </section>
   )
 }
