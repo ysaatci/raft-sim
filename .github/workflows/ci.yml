@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    name: Go (race, coverage, chaos)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+          cache: false # no third-party modules
+      - name: gofmt
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+      - name: vet
+        run: |
+          go vet ./...
+          GOOS=js GOARCH=wasm go vet ./cmd/wasm
+      - name: test
+        run: go test -race -cover ./...
+      - name: chaos (2,000 seeds)
+        run: go test ./sim -run TestChaos -seeds=2000
+      - name: fuzz (30s)
+        run: go test ./sim -run '^$' -fuzz FuzzCluster -fuzztime 30s
+
+  web:
+    name: Frontend + WASM
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+          cache: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: lint
+        run: npm run lint
+      - name: build WASM
+        run: npm run wasm
+      - name: WASM smoke test
+        run: node --test ../backend/cmd/wasm/smoke.test.mjs
+      - name: unit tests (including the real WASM)
+        run: npx vitest --run
+      - name: build
+        run: npm run build
