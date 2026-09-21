@@ -1,6 +1,8 @@
 import { ClusterRing } from '@/components/ClusterRing'
 import { ErrorToast } from '@/components/ErrorToast'
+import { Legend } from '@/components/Legend'
 import { NodePanel } from '@/components/NodePanel'
+import { Packets } from '@/components/Packets'
 import { PlaybackControls } from '@/components/PlaybackControls'
 import { useSim } from '@/store/sim'
 import { useSimLoop } from '@/store/useSimLoop'
@@ -23,12 +25,17 @@ export default function App() {
       </header>
       {state ? (
         <main className="grid flex-1 gap-6 p-6 lg:grid-cols-[1fr_320px]">
-          <div className="mx-auto aspect-square w-full max-w-[640px]">
-            <ClusterRing
-              nodes={state.nodes}
-              selected={selected}
-              onSelect={(id) => select(id === selected ? null : id)}
-            />
+          <div className="mx-auto flex w-full max-w-[640px] flex-col gap-2">
+            <div className="aspect-square w-full">
+              <ClusterRing
+                nodes={state.nodes}
+                selected={selected}
+                onSelect={(id) => select(id === selected ? null : id)}
+              >
+                <Packets flights={state.flights} nodes={state.nodes} time={state.time} />
+              </ClusterRing>
+            </div>
+            <Legend />
           </div>
           <aside className="flex flex-col gap-4">
             {node ? (

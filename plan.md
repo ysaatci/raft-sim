@@ -62,7 +62,7 @@ Makefile
 | Hosting | GitHub Pages, WASM browser mode (no hosted backend) |
 | Node-to-node transport (cluster mode) | HTTP/JSON (simpler than gRPC, easy to inspect) |
 | Fault injection (cluster mode) | App-level `/chaos` endpoint per node, not Docker network tricks |
-| Frontend | React 19, Vite 8, TypeScript 6, oxlint + Prettier, Tailwind, shadcn/ui, Framer Motion, Zustand |
+| Frontend | React 19, Vite 8, TypeScript 6, oxlint + Prettier, Tailwind, shadcn/ui, Zustand. No animation library: positions are computed exactly from virtual time every frame |
 | Tests | Go `testing` + fuzzing; Vitest + React Testing Library; Playwright smoke |
 | PreVote / CheckQuorum | Milestone 8 (after core is proven), enables the "disruptive rejoin" scenario |
 
@@ -124,7 +124,7 @@ Makefile
 
 ## Milestone 5 — Full interactive UI
 
-- [ ] 5.1 `feat(fe): message packets` — animated in-flight messages by type, dropped packets fade out
+- [x] 5.1 `feat(fe): message packets` — animated in-flight messages by type, dropped packets fade out
 - [ ] 5.2 `feat(fe): LogGrid` — nodes × indices, colored by term, commit index marker
 - [ ] 5.3 `feat(fe): Inspector panel` — term, votedFor, commit, lastApplied, nextIndex/matchIndex, KV state
 - [ ] 5.4 `feat(fe): partitions` — click links to cut; drag-to-partition tool; heal all
