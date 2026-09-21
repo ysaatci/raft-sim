@@ -84,7 +84,7 @@ Makefile
 - [x] 1.6 `feat(raft): RequestVote handling` — term checks, one vote per term, log up-to-date check; tests for each rule
 - [x] 1.7 `feat(raft): become leader on majority` — vote counting, step down on higher term; tests
 - [x] 1.8 `feat(raft): heartbeats` — leader sends empty AppendEntries on heartbeat interval; followers reset timer; tests
-- [ ] 1.9 `feat(raft): client proposals` — `Propose(data)` on leader, reject/redirect on follower (leader hint); tests
+- [x] 1.9 `feat(raft): client proposals` — `Propose(data)` on leader, reject/redirect on follower (leader hint); tests
 - [ ] 1.10 `feat(raft): AppendEntries consistency check` — prevLogIndex/Term match, conflict truncation, append; tests
 - [ ] 1.11 `feat(raft): nextIndex/matchIndex + conflict backtracking` — fast backup via conflict term/index hints; tests
 - [ ] 1.12 `feat(raft): commit rule` — majority matchIndex, **only current-term entries**; Figure-8 regression test

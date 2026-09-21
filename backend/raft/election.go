@@ -66,7 +66,10 @@ func (n *Node) becomeLeader() {
 	n.leader = n.id
 	n.votes = nil
 	n.resetTimers()
-	n.broadcastAppend() // assert leadership immediately
+	// A no-op entry in the new term lets the leader commit entries left
+	// over from earlier terms (Raft §8) and asserts leadership at once.
+	n.appendEntry("")
+	n.broadcastAppend()
 }
 
 // quorum is the number of nodes that make a majority.
