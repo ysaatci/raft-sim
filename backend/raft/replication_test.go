@@ -328,3 +328,72 @@ func TestLeaderRepairsDivergentFollowers(t *testing.T) {
 		}
 	}
 }
+
+func TestLeaderCommitsOnceMajorityHasEntry(t *testing.T) {
+	c := newTestCluster(t, nil, nil, nil, nil, nil)
+	n := c.nodes[1]
+	tickUntil(t, n, 100, func() bool { return n.Status().Role == Candidate })
+	n.Step(voteResp(2, 1, false))
+	n.Step(voteResp(3, 1, false))
+	n.Ready()
+
+	ack := func(from NodeID) {
+		n.Step(Message{Type: MsgAppResp, From: from, To: 1, Term: 1, MatchIndex: 1})
+	}
+	ack(2)
+	if n.Status().Commit != 0 {
+		t.Fatal("committed with 2/5 replicas")
+	}
+	ack(3)
+	if n.Status().Commit != 1 {
+		t.Fatalf("commit = %d, want 1 with 3/5 replicas", n.Status().Commit)
+	}
+}
+
+// TestFigure8 checks the rule from Figure 8 of the Raft paper: a leader
+// must not commit an entry from an earlier term just because a majority
+// stores it, because a later leader could still overwrite it.
+func TestFigure8(t *testing.T) {
+	// Node 1 holds an entry from term 2 that never committed, and has since
+	// seen term 3.
+	c := newTestCluster(t, []uint64{1, 2}, []uint64{1}, []uint64{1})
+	n := c.nodes[1]
+	n.term = 3
+	tickUntil(t, n, 100, func() bool { return n.Status().Role == Candidate })
+	n.Step(voteResp(2, 4, false)) // leader of term 4; no-op at index 3
+	n.Ready()
+
+	// Followers 2 and 3 now store index 2 (term 2) but not the no-op.
+	n.Step(Message{Type: MsgAppResp, From: 2, To: 1, Term: 4, MatchIndex: 2})
+	n.Step(Message{Type: MsgAppResp, From: 3, To: 1, Term: 4, MatchIndex: 2})
+	if n.Status().Commit != 0 {
+		t.Fatalf("committed term-2 entry by counting replicas: commit = %d", n.Status().Commit)
+	}
+	// Once the term-4 no-op reaches a majority, everything up to it commits.
+	n.Step(Message{Type: MsgAppResp, From: 2, To: 1, Term: 4, MatchIndex: 3})
+	if n.Status().Commit != 3 {
+		t.Fatalf("commit = %d, want 3", n.Status().Commit)
+	}
+}
+
+func TestSingleNodeCommitsImmediately(t *testing.T) {
+	n := campaignNode(t, 1)
+	n.Propose("x")
+	if n.Status().Commit != 2 {
+		t.Fatalf("commit = %d, want 2", n.Status().Commit)
+	}
+}
+
+func TestFollowersLearnCommitFromLeader(t *testing.T) {
+	c := newTestCluster(t, nil, nil, nil)
+	c.elect(1)
+	c.nodes[1].Propose("x")
+	c.deliver()
+	c.nodes[1].Tick() // heartbeat carries the new commit index
+	c.deliver()
+	for id, n := range c.nodes {
+		if n.Status().Commit != 2 {
+			t.Errorf("node %d commit = %d, want 2", id, n.Status().Commit)
+		}
+	}
+}

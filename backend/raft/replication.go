@@ -45,6 +45,7 @@ func (n *Node) handleAppResp(m Message) {
 			n.match[from] = m.MatchIndex
 		}
 		n.next[from] = max(n.next[from], n.match[from]+1)
+		n.maybeCommit()
 		if n.next[from] <= n.log.lastIndex() {
 			n.sendAppend(from) // still behind: keep going
 		}
@@ -133,4 +134,28 @@ func (n *Node) rejectApp(m Message, conflictIndex, conflictTerm uint64) {
 		ConflictIndex: conflictIndex,
 		ConflictTerm:  conflictTerm,
 	})
+}
+
+// maybeCommit advances the commit index to the highest entry stored on a
+// majority, but only if that entry is from the current term. Entries from
+// earlier terms are committed indirectly, by committing a later entry on
+// top of them; counting replicas of old entries is unsafe (Raft §5.4.2,
+// Figure 8).
+func (n *Node) maybeCommit() {
+	for i := n.log.lastIndex(); i > n.commit; i-- {
+		if t, _ := n.log.term(i); t != n.term {
+			return // terms only decrease further back
+		}
+		replicas := 0
+		for _, p := range n.peers {
+			if n.match[p] >= i {
+				replicas++
+			}
+		}
+		if replicas >= n.quorum() {
+			n.commit = i
+			n.persist()
+			return
+		}
+	}
 }

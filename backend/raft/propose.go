@@ -32,4 +32,5 @@ func (n *Node) appendEntry(data string) {
 	n.log.append(e)
 	must(n.storage.Append([]Entry{e}))
 	n.match[n.id] = e.Index
+	n.maybeCommit() // commits at once in a single-node cluster
 }
