@@ -80,7 +80,7 @@ Makefile
 - [x] 1.2 `feat(raft): in-memory log` — append, term-at, slice, truncate-from, last index/term; unit tests
 - [x] 1.3 `feat(raft): storage interface` — `HardState{Term, VotedFor, Commit}` + log persistence; `MemoryStorage` + tests
 - [x] 1.4 `feat(raft): node skeleton` — `NewNode`, `Tick`, `Step`, `Ready()` returning outbound msgs / state / committed entries; follower by default
-- [ ] 1.5 `feat(raft): randomized election timeout` — seeded RNG injected via Config; follower → candidate on timeout; tests
+- [x] 1.5 `feat(raft): randomized election timeout` — seeded RNG injected via Config; follower → candidate on timeout; tests
 - [ ] 1.6 `feat(raft): RequestVote handling` — term checks, one vote per term, log up-to-date check; tests for each rule
 - [ ] 1.7 `feat(raft): become leader on majority` — vote counting, step down on higher term; tests
 - [ ] 1.8 `feat(raft): heartbeats` — leader sends empty AppendEntries on heartbeat interval; followers reset timer; tests

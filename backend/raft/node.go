@@ -24,6 +24,8 @@ type Node struct {
 	electionTimeout  int
 	heartbeatElapsed int
 
+	votes map[NodeID]bool // candidate only: who has granted us a vote
+
 	msgs []Message
 }
 
@@ -76,7 +78,13 @@ func NewNode(cfg Config) (*Node, error) {
 
 // Tick advances the node's logical clock by one tick.
 func (n *Node) Tick() {
+	if n.role == Leader {
+		return
+	}
 	n.electionElapsed++
+	if n.electionElapsed >= n.electionTimeout {
+		n.campaign()
+	}
 }
 
 // Step processes a message from another node.
@@ -124,7 +132,8 @@ func (n *Node) becomeFollower(term uint64, leader NodeID) {
 func (n *Node) resetTimers() {
 	n.electionElapsed = 0
 	n.heartbeatElapsed = 0
-	n.electionTimeout = n.electionTick
+	// Randomized timeouts make split votes unlikely (Raft §5.2).
+	n.electionTimeout = n.electionTick + n.rand.IntN(n.electionTick)
 }
 
 func (n *Node) send(m Message) {
