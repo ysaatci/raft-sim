@@ -70,6 +70,7 @@ type simNode struct {
 	tickOffset  Time // nodes' clocks are not aligned
 	incarnation uint64
 	inbox       []raft.Message // delivered while paused
+	kv          *KV            // volatile: rebuilt from the log on restart
 }
 
 // Cluster is a Raft cluster running on a simulated network in virtual time.
@@ -132,6 +133,7 @@ func (c *Cluster) boot(sn *simNode) error {
 	}
 	sn.node = n
 	sn.state = NodeUp
+	sn.kv = NewKV()
 	return nil
 }
 
@@ -186,6 +188,9 @@ func (c *Cluster) collect(sn *simNode) {
 		if at, ok := c.net.route(m.From, m.To, c.now); ok {
 			c.inflight.push(at, &Flight{ID: c.nextID, Msg: m, SentAt: c.now, DeliverAt: at})
 		}
+	}
+	for _, e := range rd.CommittedEntries {
+		sn.kv.Apply(e.Data)
 	}
 	for _, e := range rd.Events {
 		c.events = append(c.events, TimedEvent{Time: c.now, Event: e})
@@ -319,6 +324,10 @@ func (c *Cluster) Status(id raft.NodeID) (raft.Status, bool) {
 	}
 	return sn.node.Status(), true
 }
+
+// KV returns node id's state machine. A crashed node keeps the state it
+// had when it crashed until it restarts.
+func (c *Cluster) KV(id raft.NodeID) *KV { return c.node(id).kv }
 
 // Events returns and clears the events recorded since the last call.
 func (c *Cluster) Events() []TimedEvent {

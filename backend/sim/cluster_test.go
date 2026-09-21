@@ -146,3 +146,5 @@ func mustStatus(t *testing.T, c *Cluster, id raft.NodeID) raft.Status {
 	}
 	return st
 }
+
+func nodeID(i int) raft.NodeID { return raft.NodeID(i + 1) }
