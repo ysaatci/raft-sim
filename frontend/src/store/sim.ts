@@ -1,4 +1,5 @@
 import { createStore, useStore } from 'zustand'
+import { linkStatus } from '@/lib/cluster'
 import type { Frame, SimulationClient } from '@/client/client'
 import type { Action, Config, NodeID, SimEvent, SimState } from '@/client/types'
 
@@ -20,6 +21,8 @@ export interface SimStore {
   error: string | null
   /** Node shown in the side panel. */
   selected: NodeID | null
+  /** Nodes picked for one side of a partition being drawn, or null. */
+  partitionDraft: NodeID[] | null
 
   init(client: SimulationClient, config?: Partial<Config>): Promise<void>
   play(): void
@@ -33,6 +36,13 @@ export interface SimStore {
   act(action: Action): Promise<boolean>
   clearError(): void
   select(id: NodeID | null): void
+  /** Cuts the link between a and b in both directions, or restores it if any direction is cut. */
+  toggleLink(a: NodeID, b: NodeID): Promise<void>
+  startPartition(): void
+  togglePartitionNode(id: NodeID): void
+  /** Cuts every link between the picked nodes and the rest. */
+  applyPartition(): Promise<void>
+  cancelPartition(): void
 }
 
 export function createSimStore() {
@@ -71,13 +81,14 @@ export function createSimStore() {
       speed: DEFAULT_SPEED,
       selected: null,
       error: null,
+      partitionDraft: null,
 
       async init(client, config) {
         get().client?.dispose()
         queue = Promise.resolve()
         pending = 0
         carry = 0
-        set({ client, state: null, events: [], error: null, selected: null })
+        set({ client, state: null, events: [], error: null, selected: null, partitionDraft: null })
         apply(await client.create(config))
       },
       play: () => set({ playing: true }),
@@ -112,6 +123,35 @@ export function createSimStore() {
       },
       clearError: () => set({ error: null }),
       select: (selected) => set({ selected }),
+
+      async toggleLink(a, b) {
+        const links = get().state?.links ?? []
+        const cut = linkStatus(links, a, b) === 'up'
+        for (const [from, to] of [
+          [a, b],
+          [b, a],
+        ]) {
+          const l = links.find((l) => l.from === from && l.to === to)
+          if (!l) continue
+          const { latencyMs, jitterMs, dropRate } = l
+          await get().act({ kind: 'set-link', node: from, to, link: { latencyMs, jitterMs, dropRate, cut } })
+        }
+      },
+      startPartition: () => set({ partitionDraft: [], selected: null }),
+      togglePartitionNode: (id) =>
+        set((s) => ({
+          partitionDraft: s.partitionDraft?.includes(id)
+            ? s.partitionDraft.filter((n) => n !== id)
+            : [...(s.partitionDraft ?? []), id],
+        })),
+      async applyPartition() {
+        const { partitionDraft: side, state } = get()
+        if (!side || !state) return
+        const rest = state.nodes.map((n) => n.id).filter((id) => !side.includes(id))
+        set({ partitionDraft: null })
+        if (side.length && rest.length) await get().act({ kind: 'partition', groups: [side, rest] })
+      },
+      cancelPartition: () => set({ partitionDraft: null }),
     }
   })
 }

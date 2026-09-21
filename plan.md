@@ -127,7 +127,7 @@ Makefile
 - [x] 5.1 `feat(fe): message packets` — animated in-flight messages by type, dropped packets fade out
 - [x] 5.2 `feat(fe): LogGrid` — nodes × indices, colored by term, commit index marker
 - [x] 5.3 `feat(fe): Inspector panel` — term, votedFor, commit, lastApplied, nextIndex/matchIndex, KV state
-- [ ] 5.4 `feat(fe): partitions` — click links to cut; drag-to-partition tool; heal all
+- [x] 5.4 `feat(fe): partitions` — click links to cut; partition tool (click nodes to pick one side, then apply; clearer and keyboard/touch friendly than dragging); heal all
 - [ ] 5.5 `feat(fe): network controls` — latency / jitter / drop sliders (global + per link)
 - [ ] 5.6 `feat(fe): timeline + event feed` — scrubber using sim history, filterable event list
 - [ ] 5.7 `feat(fe): cluster settings` — size 3/5/7, seed, timing params, reset

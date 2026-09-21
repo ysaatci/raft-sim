@@ -2,6 +2,7 @@ import { ClusterRing } from '@/components/ClusterRing'
 import { ErrorToast } from '@/components/ErrorToast'
 import { Legend } from '@/components/Legend'
 import { LogGrid } from '@/components/LogGrid'
+import { NetworkPanel } from '@/components/NetworkPanel'
 import { NodePanel } from '@/components/NodePanel'
 import { Packets } from '@/components/Packets'
 import { PlaybackControls } from '@/components/PlaybackControls'
@@ -13,6 +14,8 @@ export default function App() {
   const state = useSim((s) => s.state)
   const selected = useSim((s) => s.selected)
   const select = useSim((s) => s.select)
+  const draft = useSim((s) => s.partitionDraft)
+  const { togglePartitionNode, toggleLink } = useSim((s) => s)
   const node = state?.nodes.find((n) => n.id === selected)
 
   return (
@@ -31,7 +34,10 @@ export default function App() {
               <ClusterRing
                 nodes={state.nodes}
                 selected={selected}
-                onSelect={(id) => select(id === selected ? null : id)}
+                onSelect={(id) => (draft ? togglePartitionNode(id) : select(id === selected ? null : id))}
+                links={state.links}
+                onLinkClick={toggleLink}
+                highlighted={draft ?? []}
               >
                 <Packets flights={state.flights} nodes={state.nodes} time={state.time} />
               </ClusterRing>
@@ -46,6 +52,7 @@ export default function App() {
                 Click a node to crash, pause or restart it, or to send it a write.
               </p>
             )}
+            <NetworkPanel />
           </aside>
           <div className="lg:col-span-2">
             <LogGrid nodes={state.nodes} selected={selected} />

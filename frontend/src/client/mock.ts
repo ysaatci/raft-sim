@@ -58,6 +58,11 @@ export class MockClient implements SimulationClient {
       links: [],
       violations: [],
     }
+    for (let from = 1; from <= cfg.size; from++) {
+      for (let to = 1; to <= cfg.size; to++) {
+        if (from !== to) this.state.links.push({ from, to, ...cfg.network })
+      }
+    }
     return this.frame(true)
   }
 
@@ -99,6 +104,16 @@ export class MockClient implements SimulationClient {
       if (n.state !== 'up') n.role = 'follower'
       this.pending.push({ time: this.state.time, type: nodeEvents[action.kind], node: n.id, term: n.term })
     }
+    const links = this.state.links
+    if (action.kind === 'set-link') {
+      const l = links.find((l) => l.from === action.node && l.to === action.to)!
+      Object.assign(l, action.link)
+    }
+    if (action.kind === 'partition') {
+      const side = (id: number) => action.groups.findIndex((g) => g.includes(id))
+      for (const l of links) if (side(l.from) !== side(l.to)) l.cut = true
+    }
+    if (action.kind === 'heal') for (const l of links) l.cut = false
     return this.frame(false)
   }
 
