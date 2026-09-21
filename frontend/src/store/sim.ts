@@ -1,6 +1,6 @@
 import { createStore, useStore } from 'zustand'
 import type { Frame, SimulationClient } from '@/client/client'
-import type { Action, Config, SimEvent, SimState } from '@/client/types'
+import type { Action, Config, NodeID, SimEvent, SimState } from '@/client/types'
 
 export const SPEEDS = [0.02, 0.05, 0.1, 0.25, 1] as const
 export const DEFAULT_SPEED = 0.05
@@ -18,6 +18,8 @@ export interface SimStore {
   speed: number
   /** Last rejected action, e.g. proposing to a follower. */
   error: string | null
+  /** Node shown in the side panel. */
+  selected: NodeID | null
 
   init(client: SimulationClient, config?: Partial<Config>): Promise<void>
   play(): void
@@ -27,8 +29,10 @@ export interface SimStore {
   tick(realMs: number): Promise<void>
   step(ms: number): Promise<void>
   seek(time: number): Promise<void>
-  act(action: Action): Promise<void>
+  /** Applies an action; resolves false if the simulator rejected it. */
+  act(action: Action): Promise<boolean>
   clearError(): void
+  select(id: NodeID | null): void
 }
 
 export function createSimStore() {
@@ -65,6 +69,7 @@ export function createSimStore() {
       events: [],
       playing: false,
       speed: DEFAULT_SPEED,
+      selected: null,
       error: null,
 
       async init(client, config) {
@@ -72,7 +77,7 @@ export function createSimStore() {
         queue = Promise.resolve()
         pending = 0
         carry = 0
-        set({ client, state: null, events: [], error: null })
+        set({ client, state: null, events: [], error: null, selected: null })
         apply(await client.create(config))
       },
       play: () => set({ playing: true }),
@@ -99,11 +104,14 @@ export function createSimStore() {
         try {
           await run((c) => c.do(action))
           set({ error: null })
+          return true
         } catch (e) {
           set({ error: e instanceof Error ? e.message : String(e) })
+          return false
         }
       },
       clearError: () => set({ error: null }),
+      select: (selected) => set({ selected }),
     }
   })
 }

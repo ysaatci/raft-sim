@@ -1,20 +1,7 @@
 import type { NodeID, NodeView } from '@/client/types'
-import { ringPositions, type Point } from '@/lib/geometry'
+import { RING, nodeColor, nodePositions, nodeStatus } from '@/lib/cluster'
+import type { Point } from '@/lib/geometry'
 import { cn } from '@/lib/utils'
-
-export const RING = { size: 600, radius: 210, node: 44 }
-const CENTER: Point = { x: RING.size / 2, y: RING.size / 2 }
-
-/** Stroke color for a node: crashed/paused override its Raft role. */
-export function nodeColor(n: NodeView): string {
-  if (n.state === 'crashed') return 'var(--crashed)'
-  if (n.state === 'paused') return 'var(--paused)'
-  return `var(--${n.role})`
-}
-
-export function nodePositions(count: number): Point[] {
-  return ringPositions(count, CENTER, RING.radius)
-}
 
 interface Props {
   nodes: NodeView[]
@@ -60,7 +47,7 @@ function Node({
   const circumference = 2 * Math.PI * timerR
   const showTimer = n.state === 'up' && n.role !== 'leader'
   const progress = Math.min(n.electionElapsed / Math.max(n.electionTimeout, 1), 1)
-  const label = `Node ${n.id}, ${n.state === 'up' ? n.role : n.state}, term ${n.term}`
+  const label = `Node ${n.id}, ${nodeStatus(n)}, term ${n.term}`
 
   return (
     <g
@@ -106,7 +93,7 @@ function Node({
         T{n.term}
       </text>
       <text y={r + 26} textAnchor="middle" className="font-mono text-[12px] uppercase" fill={color}>
-        {n.state === 'up' ? n.role : n.state}
+        {nodeStatus(n)}
       </text>
     </g>
   )
