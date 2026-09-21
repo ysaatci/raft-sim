@@ -25,6 +25,7 @@ func main() {
 		"actions":       query(func([]js.Value) (string, error) { return api.Actions() }),
 		"scenarios":     fn(func(js.Value, []js.Value) any { return bridge.Scenarios() }),
 		"loadScenario":  mutation(func(a []js.Value) error { return api.LoadScenario(a[0].String()) }),
+		"replay":        mutation(func(a []js.Value) error { return api.Replay(a[0].String(), a[1].String()) }),
 	}))
 	select {} // keep the Go runtime alive to serve calls
 }

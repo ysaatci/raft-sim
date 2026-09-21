@@ -123,3 +123,30 @@ func TestActionJSONRoundTrip(t *testing.T) {
 		t.Fatalf("round trip = %+v, %v; json %s", got, err, b)
 	}
 }
+
+func TestReplayReproducesARun(t *testing.T) {
+	s := newTestSim(t, 34)
+	_, end := eventfulRun(t, s)
+
+	r, err := Replay(s.cfg, s.Actions())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r.Now() != 0 {
+		t.Fatalf("replay starts at t=%d", r.Now())
+	}
+	r.Advance(3000)
+	if stateJSON(t, r) != end {
+		t.Fatal("replaying the recorded actions gave a different run")
+	}
+}
+
+func TestReplayRejectsUnorderedActions(t *testing.T) {
+	cfg := DefaultConfig()
+	if _, err := Replay(cfg, []Action{{At: 50, Kind: ActHeal}, {At: 10, Kind: ActHeal}}); err == nil {
+		t.Fatal("out-of-order actions accepted")
+	}
+	if _, err := Replay(cfg, []Action{{At: -1, Kind: ActHeal}}); err == nil {
+		t.Fatal("negative time accepted")
+	}
+}

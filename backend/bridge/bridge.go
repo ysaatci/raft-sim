@@ -134,3 +134,22 @@ func (a *API) LoadScenario(id string) error {
 	a.sim = s
 	return nil
 }
+
+// Replay replaces the simulation with one rebuilt from a config and a
+// recorded timeline, both JSON (as produced by State and Actions).
+func (a *API) Replay(configJSON, actionsJSON string) error {
+	cfg := sim.DefaultConfig()
+	if err := json.Unmarshal([]byte(configJSON), &cfg); err != nil {
+		return err
+	}
+	var actions []sim.Action
+	if err := json.Unmarshal([]byte(actionsJSON), &actions); err != nil {
+		return err
+	}
+	s, err := sim.Replay(cfg, actions)
+	if err != nil {
+		return err
+	}
+	a.sim = s
+	return nil
+}

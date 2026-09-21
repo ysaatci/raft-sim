@@ -148,3 +148,25 @@ func TestScenariosAndLoadScenario(t *testing.T) {
 		t.Fatalf("scenario script not recorded: %s", acts)
 	}
 }
+
+func TestReplayFromJSON(t *testing.T) {
+	var a API
+	a.Create(`{"seed": 5}`)
+	a.Advance(800)
+	a.Do(`{"kind":"crash","node":1}`)
+	a.Advance(800)
+	want, _ := a.State()
+	acts, _ := a.Actions()
+
+	var b API
+	if err := b.Replay(`{"seed": 5}`, acts); err != nil {
+		t.Fatal(err)
+	}
+	b.Advance(1600)
+	if got, _ := b.State(); got != want {
+		t.Fatal("replayed state differs")
+	}
+	if b.Replay(`{`, `[]`) == nil || b.Replay(`{}`, `nope`) == nil {
+		t.Fatal("malformed input accepted")
+	}
+}

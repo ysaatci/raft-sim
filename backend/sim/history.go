@@ -154,3 +154,19 @@ func (s *Sim) replayTo(t Time) {
 }
 
 func (s *Sim) drain() { s.history = append(s.history, s.c.Events()...) }
+
+// Replay builds a sim at time 0 whose timeline is the given actions, e.g.
+// from a shared link. Playing it forward reproduces the original run.
+func Replay(cfg Config, actions []Action) (*Sim, error) {
+	s, err := NewSim(cfg)
+	if err != nil {
+		return nil, err
+	}
+	for i, a := range actions {
+		if a.At < 0 || (i > 0 && a.At < actions[i-1].At) {
+			return nil, fmt.Errorf("sim: replay: action %d is out of time order", i)
+		}
+	}
+	s.actions = append([]Action(nil), actions...)
+	return s, nil
+}
