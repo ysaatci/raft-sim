@@ -2,8 +2,6 @@
 
 GO_DIR   := backend
 FE_DIR   := frontend
-WASM_OUT := $(FE_DIR)/public/raft.wasm
-GOROOT   := $(shell go env GOROOT)
 
 .PHONY: help test test-go test-fe test-docker wasm fe-install fe-dev fe-build up down
 
@@ -23,9 +21,7 @@ test-fe: ## Run frontend tests
 	cd $(FE_DIR) && npm test -- --run
 
 wasm: ## Build the Raft simulator to WebAssembly
-	mkdir -p $(FE_DIR)/public
-	cd $(GO_DIR) && GOOS=js GOARCH=wasm go build -trimpath -ldflags="-s -w" -o ../$(WASM_OUT) ./cmd/wasm
-	cp "$(GOROOT)/lib/wasm/wasm_exec.js" $(FE_DIR)/public/wasm_exec.js
+	node scripts/build-wasm.mjs
 
 fe-install: ## Install frontend dependencies
 	cd $(FE_DIR) && npm ci
