@@ -101,7 +101,7 @@ Makefile
 - [x] 2.5 `feat(sim): invariant checker` — Election Safety, Log Matching, Leader Completeness, State Machine Safety
 - [x] 2.6 `test(sim): election + replication integration tests` — happy path, leader crash, re-election
 - [x] 2.7 `test(sim): randomized chaos tests` — many seeds of random crashes/partitions/drops; failure prints seed; `-seeds` flag
-- [ ] 2.8 `test(raft): fuzz Step` — `go test -fuzz` target on message handling (no panics, invariants hold)
+- [x] 2.8 `test(sim): fuzz cluster actions` — `go test -fuzz` over random action sequences (no panics, invariants hold). Fuzzing raw `Step` with forged messages only trips the core's deliberate safety panics, so the fuzzer drives whole clusters instead
 - [ ] 2.9 `feat(sim): snapshot/serialize state` — full cluster view for UI (roles, terms, logs, indices, in-flight msgs)
 - [ ] 2.10 `feat(sim): history + rewind` — record checkpoints, step back/forward
 
