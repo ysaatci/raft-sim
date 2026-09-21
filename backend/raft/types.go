@@ -106,6 +106,8 @@ type Config struct {
 	HeartbeatTick int
 	// Rand supplies randomness. Seed it to make runs reproducible.
 	Rand *rand.Rand
+	// Storage persists state across restarts.
+	Storage Storage
 }
 
 func (c *Config) validate() error {
@@ -129,6 +131,9 @@ func (c *Config) validate() error {
 	}
 	if c.Rand == nil {
 		return errors.New("raft: Rand must be set")
+	}
+	if c.Storage == nil {
+		return errors.New("raft: Storage must be set")
 	}
 	return nil
 }
