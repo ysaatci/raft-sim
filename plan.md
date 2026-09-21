@@ -76,7 +76,7 @@ Makefile
 
 ## Milestone 1 — Raft core (pure, deterministic)
 
-- [ ] 1.1 `feat(raft): core types` — `NodeID`, `Term`, `Role`, `Entry`, `Message` (+ `MsgType`), `Config`
+- [x] 1.1 `feat(raft): core types` — `NodeID`, `Term`, `Role`, `Entry`, `Message` (+ `MsgType`), `Config`
 - [ ] 1.2 `feat(raft): in-memory log` — append, term-at, slice, truncate-from, last index/term; unit tests
 - [ ] 1.3 `feat(raft): storage interface` — `HardState{Term, VotedFor, Commit}` + log persistence; `MemoryStorage` + tests
 - [ ] 1.4 `feat(raft): node skeleton` — `NewNode`, `Tick`, `Step`, `Ready()` returning outbound msgs / state / committed entries; follower by default
