@@ -145,7 +145,7 @@ Makefile
 - [x] 6.6 `ci: test workflow` — go vet, go test -race, short chaos run, wasm build, lint, vitest, build
 - [x] 6.7 `ci: pages deploy workflow` — build wasm + vite (`base: '/raft-sim/'`), `actions/deploy-pages`
 - [x] 6.8 `test(fe): playwright smoke` — load, crash leader, new leader appears
-- [ ] 6.9 `docs: README` — screenshots/GIF, live link, how Raft works here, local dev
+- [x] 6.9 `docs: README` — screenshots/GIF, live link, how Raft works here, local dev
 
 ## Milestone 7 — Cluster mode (Docker Compose)
 
