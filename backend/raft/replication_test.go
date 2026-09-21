@@ -195,15 +195,16 @@ func TestAppendAdvancesCommitUpToLastNewEntry(t *testing.T) {
 
 // testCluster is a minimal lossless network for driving a few nodes.
 type testCluster struct {
-	t     *testing.T
-	nodes map[NodeID]*Node
+	t        *testing.T
+	nodes    map[NodeID]*Node
+	storages map[NodeID]*MemoryStorage
 }
 
 // newTestCluster builds nodes 1..len(logs); node i starts with log terms
 // logs[i-1] and a current term equal to its highest log term.
 func newTestCluster(t *testing.T, logs ...[]uint64) *testCluster {
 	t.Helper()
-	c := &testCluster{t: t, nodes: map[NodeID]*Node{}}
+	c := &testCluster{t: t, nodes: map[NodeID]*Node{}, storages: map[NodeID]*MemoryStorage{}}
 	for i, terms := range logs {
 		s := NewMemoryStorage()
 		var ents []Entry
@@ -216,6 +217,7 @@ func newTestCluster(t *testing.T, logs ...[]uint64) *testCluster {
 		s.SetHardState(HardState{Term: term})
 		id := NodeID(i + 1)
 		c.nodes[id] = newTestNodeWithStorage(t, id, len(logs), s)
+		c.storages[id] = s
 	}
 	return c
 }
