@@ -1,6 +1,7 @@
 import { ClusterRing } from '@/components/ClusterRing'
 import { ErrorToast } from '@/components/ErrorToast'
 import { Legend } from '@/components/Legend'
+import { LogGrid } from '@/components/LogGrid'
 import { NodePanel } from '@/components/NodePanel'
 import { Packets } from '@/components/Packets'
 import { PlaybackControls } from '@/components/PlaybackControls'
@@ -46,6 +47,9 @@ export default function App() {
               </p>
             )}
           </aside>
+          <div className="lg:col-span-2">
+            <LogGrid nodes={state.nodes} selected={selected} />
+          </div>
         </main>
       ) : (
         <main className="grid flex-1 place-items-center">

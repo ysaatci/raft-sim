@@ -125,7 +125,7 @@ Makefile
 ## Milestone 5 — Full interactive UI
 
 - [x] 5.1 `feat(fe): message packets` — animated in-flight messages by type, dropped packets fade out
-- [ ] 5.2 `feat(fe): LogGrid` — nodes × indices, colored by term, commit index marker
+- [x] 5.2 `feat(fe): LogGrid` — nodes × indices, colored by term, commit index marker
 - [ ] 5.3 `feat(fe): Inspector panel` — term, votedFor, commit, lastApplied, nextIndex/matchIndex, KV state
 - [ ] 5.4 `feat(fe): partitions` — click links to cut; drag-to-partition tool; heal all
 - [ ] 5.5 `feat(fe): network controls` — latency / jitter / drop sliders (global + per link)

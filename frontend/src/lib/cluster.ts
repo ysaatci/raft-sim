@@ -19,3 +19,8 @@ export function nodeStatus(n: NodeView): string {
 export function nodePositions(count: number): Point[] {
   return ringPositions(count, CENTER, RING.radius)
 }
+
+/** A distinct, stable color per term, so entries from different terms stand apart. */
+export function termColor(term: number): string {
+  return `oklch(0.7 0.13 ${(term * 67) % 360})`
+}
