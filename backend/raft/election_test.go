@@ -176,3 +176,64 @@ func TestGrantingVoteResetsElectionTimer(t *testing.T) {
 		t.Fatal("election timer not reset after granting vote")
 	}
 }
+
+// campaignNode returns node 1 of a size-node cluster as a fresh candidate
+// in term 1, with its vote requests drained.
+func campaignNode(t *testing.T, size int) *Node {
+	t.Helper()
+	n := newTestNode(t, 1, size)
+	tickUntil(t, n, 20, func() bool { return n.Status().Role != Follower })
+	n.Ready()
+	return n
+}
+
+func voteResp(from NodeID, term uint64, reject bool) Message {
+	return Message{Type: MsgVoteResp, From: from, To: 1, Term: term, Reject: reject}
+}
+
+func TestCandidateBecomesLeaderWithMajority(t *testing.T) {
+	n := campaignNode(t, 5)
+	n.Step(voteResp(2, 1, false))
+	if n.Status().Role != Candidate {
+		t.Fatal("became leader with 2/5 votes")
+	}
+	n.Step(voteResp(3, 1, true))
+	n.Step(voteResp(4, 1, false))
+	if st := n.Status(); st.Role != Leader || st.Leader != 1 {
+		t.Fatalf("status = %+v, want leader with 3/5 votes", st)
+	}
+}
+
+func TestDuplicateVotesAreNotDoubleCounted(t *testing.T) {
+	n := campaignNode(t, 5)
+	n.Step(voteResp(2, 1, false))
+	n.Step(voteResp(2, 1, false))
+	if n.Status().Role != Candidate {
+		t.Fatal("duplicate vote was counted twice")
+	}
+}
+
+func TestStaleTermVoteIsIgnored(t *testing.T) {
+	n := campaignNode(t, 3)
+	tickUntil(t, n, 20, func() bool { return n.Status().Term == 2 }) // re-campaign in term 2
+	n.Step(voteResp(2, 1, false))
+	if n.Status().Role != Candidate {
+		t.Fatal("vote from term 1 counted in term 2")
+	}
+}
+
+func TestSingleNodeElectsItself(t *testing.T) {
+	n := campaignNode(t, 1)
+	if st := n.Status(); st.Role != Leader || st.Term != 1 {
+		t.Fatalf("status = %+v, want leader in term 1", st)
+	}
+}
+
+func TestLeaderStepsDownOnHigherTerm(t *testing.T) {
+	n := campaignNode(t, 3)
+	n.Step(voteResp(2, 1, false))
+	n.Step(Message{Type: MsgApp, From: 3, To: 1, Term: 2})
+	if st := n.Status(); st.Role != Follower || st.Term != 2 {
+		t.Fatalf("status = %+v, want follower in term 2", st)
+	}
+}

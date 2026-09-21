@@ -82,7 +82,7 @@ Makefile
 - [x] 1.4 `feat(raft): node skeleton` — `NewNode`, `Tick`, `Step`, `Ready()` returning outbound msgs / state / committed entries; follower by default
 - [x] 1.5 `feat(raft): randomized election timeout` — seeded RNG injected via Config; follower → candidate on timeout; tests
 - [x] 1.6 `feat(raft): RequestVote handling` — term checks, one vote per term, log up-to-date check; tests for each rule
-- [ ] 1.7 `feat(raft): become leader on majority` — vote counting, step down on higher term; tests
+- [x] 1.7 `feat(raft): become leader on majority` — vote counting, step down on higher term; tests
 - [ ] 1.8 `feat(raft): heartbeats` — leader sends empty AppendEntries on heartbeat interval; followers reset timer; tests
 - [ ] 1.9 `feat(raft): client proposals` — `Propose(data)` on leader, reject/redirect on follower (leader hint); tests
 - [ ] 1.10 `feat(raft): AppendEntries consistency check` — prevLogIndex/Term match, conflict truncation, append; tests

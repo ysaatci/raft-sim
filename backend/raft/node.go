@@ -103,6 +103,8 @@ func (n *Node) Step(m Message) {
 	switch m.Type {
 	case MsgVote:
 		n.handleVote(m)
+	case MsgVoteResp:
+		n.handleVoteResp(m)
 	}
 }
 
