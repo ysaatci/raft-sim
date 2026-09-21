@@ -86,6 +86,8 @@ export interface Violation {
 export interface SimState {
   time: number
   config: Config
+  /** Current conditions of links without their own settings. */
+  network: LinkConfig
   nodes: NodeView[]
   flights: Flight[]
   links: LinkView[]

@@ -1,4 +1,5 @@
 import { Scissors, Unplug } from 'lucide-react'
+import { NetworkConditions } from '@/components/NetworkConditions'
 import { Button } from '@/components/ui/button'
 import { useSim } from '@/store/sim'
 
@@ -52,6 +53,7 @@ export function NetworkPanel() {
               <Unplug /> Heal all
             </Button>
           </div>
+          <NetworkConditions />
         </>
       )}
     </section>

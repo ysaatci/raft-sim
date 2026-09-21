@@ -55,6 +55,7 @@ export class MockClient implements SimulationClient {
       config: cfg,
       nodes: Array.from({ length: cfg.size }, (_, i) => node(i + 1)),
       flights: [],
+      network: { ...cfg.network },
       links: [],
       violations: [],
     }
@@ -114,6 +115,10 @@ export class MockClient implements SimulationClient {
       for (const l of links) if (side(l.from) !== side(l.to)) l.cut = true
     }
     if (action.kind === 'heal') for (const l of links) l.cut = false
+    if (action.kind === 'set-network') {
+      this.state.network = { ...action.link, cut: false }
+      for (const l of links) Object.assign(l, { ...action.link, cut: l.cut })
+    }
     return this.frame(false)
   }
 
