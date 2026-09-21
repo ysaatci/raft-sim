@@ -62,7 +62,7 @@ Makefile
 | Hosting | GitHub Pages, WASM browser mode (no hosted backend) |
 | Node-to-node transport (cluster mode) | HTTP/JSON (simpler than gRPC, easy to inspect) |
 | Fault injection (cluster mode) | App-level `/chaos` endpoint per node, not Docker network tricks |
-| Frontend | React 18, Vite, TypeScript, Tailwind, shadcn/ui, Framer Motion, Zustand |
+| Frontend | React 19, Vite 8, TypeScript 6, oxlint + Prettier, Tailwind, shadcn/ui, Framer Motion, Zustand |
 | Tests | Go `testing` + fuzzing; Vitest + React Testing Library; Playwright smoke |
 | PreVote / CheckQuorum | Milestone 8 (after core is proven), enables the "disruptive rejoin" scenario |
 
@@ -113,7 +113,7 @@ Makefile
 
 ## Milestone 4 — Frontend foundation
 
-- [ ] 4.1 `chore(fe): scaffold vite react-ts` — ESLint, Prettier, Vitest config
+- [x] 4.1 `chore(fe): scaffold vite react-ts` — oxlint (template default), Prettier, Vitest config; npm scripts build the WASM before dev/build
 - [ ] 4.2 `chore(fe): tailwind + shadcn/ui + dark theme tokens`
 - [ ] 4.3 `feat(fe): SimulationClient interface + MockClient` — TS types mirroring Go state
 - [ ] 4.4 `feat(fe): web worker + WasmClient` — load wasm in worker, message protocol
