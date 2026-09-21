@@ -143,7 +143,7 @@ Makefile
 - [x] 6.4 `feat(fe): scenario picker + narration` — guided step-by-step captions
 - [x] 6.5 `feat(fe): shareable URLs` — seed + scenario + config in URL hash
 - [x] 6.6 `ci: test workflow` — go vet, go test -race, short chaos run, wasm build, lint, vitest, build
-- [ ] 6.7 `ci: pages deploy workflow` — build wasm + vite (`base: '/raft-sim/'`), `actions/deploy-pages`
+- [x] 6.7 `ci: pages deploy workflow` — build wasm + vite (`base: '/raft-sim/'`), `actions/deploy-pages`
 - [ ] 6.8 `test(fe): playwright smoke` — load, crash leader, new leader appears
 - [ ] 6.9 `docs: README` — screenshots/GIF, live link, how Raft works here, local dev
 
