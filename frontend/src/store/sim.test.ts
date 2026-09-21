@@ -67,3 +67,13 @@ test('re-init disposes the previous client', async () => {
   await s().init(new MockClient())
   expect(client.calls.at(-1)).toBe('dispose')
 })
+
+test('an action during an in-flight advance is queued, not dropped', async () => {
+  s().play()
+  s().setSpeed(1)
+  const tick = s().tick(10)
+  const act = s().act({ kind: 'crash', node: 2 })
+  await Promise.all([tick, act])
+  expect(client.calls.slice(1)).toEqual(['advance 10', 'do {"kind":"crash","node":2}'])
+  expect(s().state?.nodes[1].state).toBe('crashed')
+})

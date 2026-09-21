@@ -32,7 +32,8 @@ export interface SimStore {
 }
 
 export function createSimStore() {
-  let busy = false // a request is in flight; frames never overlap
+  let queue: Promise<void> = Promise.resolve()
+  let pending = 0 // queued or running requests; animation frames skip rather than pile up
   let carry = 0 // virtual time owed but not yet advanced
 
   return createStore<SimStore>()((set, get) => {
@@ -42,17 +43,20 @@ export function createSimStore() {
         events: f.reset ? f.events.slice(-MAX_EVENTS) : [...s.events, ...f.events].slice(-MAX_EVENTS),
       }))
 
-    // Runs one request at a time; returns false if another is in flight.
-    const run = async (req: (c: SimulationClient) => Promise<Frame>) => {
+    // Requests run one at a time, in order: each waits for the previous one.
+    const run = (req: (c: SimulationClient) => Promise<Frame>): Promise<void> => {
       const client = get().client
-      if (!client || busy) return false
-      busy = true
-      try {
-        apply(await req(client))
-      } finally {
-        busy = false
-      }
-      return true
+      if (!client) return Promise.resolve()
+      pending++
+      const p = queue.then(async () => {
+        try {
+          apply(await req(client))
+        } finally {
+          pending--
+        }
+      })
+      queue = p.catch(() => {}) // one failure must not block later requests
+      return p
     }
 
     return {
@@ -65,7 +69,8 @@ export function createSimStore() {
 
       async init(client, config) {
         get().client?.dispose()
-        busy = false
+        queue = Promise.resolve()
+        pending = 0
         carry = 0
         set({ client, state: null, events: [], error: null })
         apply(await client.create(config))
@@ -79,7 +84,9 @@ export function createSimStore() {
         carry = Math.min(carry + realMs * get().speed, MAX_STEP_MS)
         const ms = Math.floor(carry)
         if (ms < 1) return
-        if (await run((c) => c.advance(ms))) carry -= ms
+        if (pending > 0) return
+        carry -= ms
+        await run((c) => c.advance(ms))
       },
       async step(ms) {
         await run((c) => c.advance(ms))
