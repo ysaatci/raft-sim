@@ -123,8 +123,12 @@ func (n *Node) Step(m Message) {
 
 // Ready returns and clears the node's pending output.
 func (n *Node) Ready() Ready {
-	rd := Ready{Messages: n.msgs}
+	rd := Ready{
+		Messages:         n.msgs,
+		CommittedEntries: n.log.slice(n.applied+1, n.commit+1),
+	}
 	n.msgs = nil
+	n.applied = n.commit
 	return rd
 }
 

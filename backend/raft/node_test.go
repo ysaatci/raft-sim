@@ -67,3 +67,25 @@ func TestReadyDrainsMessages(t *testing.T) {
 		t.Fatalf("second Ready should be empty, got %+v", rd)
 	}
 }
+
+func TestReadyReturnsCommittedEntriesOnce(t *testing.T) {
+	n := newTestNode(t, 1, 3)
+	n.Step(Message{Type: MsgApp, From: 2, To: 1, Term: 1, Commit: 2,
+		Entries: []Entry{{Term: 1, Index: 1, Data: "a"}, {Term: 1, Index: 2, Data: "b"}, {Term: 1, Index: 3, Data: "c"}}})
+
+	rd := n.Ready()
+	if len(rd.CommittedEntries) != 2 || rd.CommittedEntries[0].Data != "a" || rd.CommittedEntries[1].Data != "b" {
+		t.Fatalf("committed = %+v, want entries a, b", rd.CommittedEntries)
+	}
+	if n.Status().Applied != 2 {
+		t.Fatalf("applied = %d, want 2", n.Status().Applied)
+	}
+	if rd := n.Ready(); len(rd.CommittedEntries) != 0 {
+		t.Fatalf("entries returned twice: %+v", rd.CommittedEntries)
+	}
+
+	n.Step(Message{Type: MsgApp, From: 2, To: 1, Term: 1, PrevLogIndex: 3, PrevLogTerm: 1, Commit: 3})
+	if rd := n.Ready(); len(rd.CommittedEntries) != 1 || rd.CommittedEntries[0].Data != "c" {
+		t.Fatalf("committed = %+v, want entry c", rd.CommittedEntries)
+	}
+}

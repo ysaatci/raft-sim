@@ -88,7 +88,7 @@ Makefile
 - [x] 1.10 `feat(raft): AppendEntries consistency check` — prevLogIndex/Term match, conflict truncation, append; tests
 - [x] 1.11 `feat(raft): nextIndex/matchIndex + conflict backtracking` — fast backup via conflict term/index hints; tests
 - [x] 1.12 `feat(raft): commit rule` — majority matchIndex, **only current-term entries**; Figure-8 regression test
-- [ ] 1.13 `feat(raft): apply committed entries` — lastApplied, expose in Ready; tests
+- [x] 1.13 `feat(raft): apply committed entries` — lastApplied, expose in Ready; tests
 - [ ] 1.14 `feat(raft): restart from storage` — node rebuilds from HardState + log; tests
 - [ ] 1.15 `feat(raft): event stream` — structured events (`BecameLeader`, `VoteGranted`, `EntryCommitted`, ...) for the UI
 
