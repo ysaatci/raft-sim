@@ -1,0 +1,24 @@
+# Go
+/backend/bin/
+*.test
+*.out
+coverage.*
+
+# WASM build output
+/frontend/public/raft.wasm
+/frontend/public/wasm_exec.js
+
+# Node
+node_modules/
+dist/
+*.local
+
+# Test artifacts
+/frontend/playwright-report/
+/frontend/test-results/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
