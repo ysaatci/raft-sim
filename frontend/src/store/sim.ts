@@ -5,6 +5,8 @@ import type { Action, Config, NodeID, SimEvent, SimState } from '@/client/types'
 
 export const SPEEDS = [0.02, 0.05, 0.1, 0.25, 1] as const
 export const DEFAULT_SPEED = 0.05
+/** Stable empty array for selectors: a fresh [] on every call would re-render forever. */
+export const NONE: readonly never[] = []
 const MAX_EVENTS = 2000
 // Longest virtual step per animation frame, so a slow frame or a stalled
 // request never makes the simulation jump ahead abruptly.

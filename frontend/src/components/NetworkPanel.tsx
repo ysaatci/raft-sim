@@ -1,12 +1,12 @@
 import { Scissors, Unplug } from 'lucide-react'
 import { NetworkConditions } from '@/components/NetworkConditions'
 import { Button } from '@/components/ui/button'
-import { useSim } from '@/store/sim'
+import { NONE, useSim } from '@/store/sim'
 
 /** Partition and heal the network. */
 export function NetworkPanel() {
   const draft = useSim((s) => s.partitionDraft)
-  const nodes = useSim((s) => s.state?.nodes ?? [])
+  const nodes = useSim((s) => s.state?.nodes ?? NONE)
   const anyCut = useSim((s) => s.state?.links.some((l) => l.cut) ?? false)
   const { startPartition, applyPartition, cancelPartition, act } = useSim((s) => s)
 

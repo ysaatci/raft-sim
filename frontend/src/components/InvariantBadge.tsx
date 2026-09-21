@@ -1,7 +1,7 @@
 import { ShieldAlert, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { formatTime } from '@/lib/events'
-import { useSim } from '@/store/sim'
+import { NONE, useSim } from '@/store/sim'
 
 const PROPERTIES = [
   'Election Safety: at most one leader per term',
@@ -12,7 +12,7 @@ const PROPERTIES = [
 
 /** Live result of the simulator's safety checker. */
 export function InvariantBadge() {
-  const violations = useSim((s) => s.state?.violations ?? [])
+  const violations = useSim((s) => s.state?.violations ?? NONE)
   const [open, setOpen] = useState(false)
 
   if (violations.length === 0) {

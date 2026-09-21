@@ -31,3 +31,10 @@ test('speed buttons select the playback speed', async () => {
   expect(simStore.getState().speed).toBe(0.25)
   expect(screen.getByRole('button', { name: '0.25×' })).toHaveAttribute('aria-pressed', 'true')
 })
+
+test('renders a loading state before the simulator is ready', () => {
+  simStore.setState({ state: null })
+  render(<App />)
+  expect(screen.getByText(/Loading simulator/)).toBeInTheDocument()
+  expect(screen.getByLabelText('Safety checks: all passing')).toBeInTheDocument()
+})
