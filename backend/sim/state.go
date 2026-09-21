@@ -67,13 +67,16 @@ func (c *Cluster) nodeView(sn *simNode) NodeView {
 		v.Status = sn.node.Status()
 		v.Log = sn.node.Entries()
 		v.Next, v.Match = sn.node.Progress()
-		return v
+	} else {
+		hs, ents, _ := sn.storage.InitialState()
+		v.Status = raft.Status{ID: sn.id, Term: hs.Term, VotedFor: hs.VotedFor, Commit: hs.Commit}
+		v.Log = ents
+		if n := len(ents); n > 0 {
+			v.LastIndex, v.LastTerm = ents[n-1].Index, ents[n-1].Term
+		}
 	}
-	hs, ents, _ := sn.storage.InitialState()
-	v.Status = raft.Status{ID: sn.id, Term: hs.Term, VotedFor: hs.VotedFor, Commit: hs.Commit}
-	v.Log = ents
-	if n := len(ents); n > 0 {
-		v.LastIndex, v.LastTerm = ents[n-1].Index, ents[n-1].Term
+	if v.Log == nil {
+		v.Log = []raft.Entry{} // serialize as [], not null
 	}
 	return v
 }

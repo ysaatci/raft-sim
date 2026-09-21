@@ -74,3 +74,12 @@ func TestStateJSON(t *testing.T) {
 		}
 	}
 }
+
+func TestEmptyLogSerializesAsArray(t *testing.T) {
+	c := newTestCluster(t, 23)
+	c.Crash(2)
+	b, _ := json.Marshal(c.State())
+	if strings.Contains(string(b), `"log":null`) {
+		t.Fatalf("empty log encoded as null: %s", b)
+	}
+}
