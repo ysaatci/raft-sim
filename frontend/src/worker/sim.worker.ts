@@ -31,10 +31,8 @@ self.onmessage = async (e: MessageEvent<Request>) => {
   let res: Response
   try {
     const engine = await ready
-    res =
-      req.method === 'scenarios'
-        ? { id, data: engine.scenarios() }
-        : { id, frame: engine.call(req.method, req.arg) }
+    if ('arg' in req) res = { id, frame: engine.call(req.method, req.arg) }
+    else res = { id, data: req.method === 'scenarios' ? engine.scenarios() : engine.actions() }
   } catch (err) {
     res = { id, error: err instanceof Error ? err.message : String(err) }
   }

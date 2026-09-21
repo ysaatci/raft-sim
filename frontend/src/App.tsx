@@ -12,6 +12,7 @@ import { NodePanel } from '@/components/NodePanel'
 import { Packets } from '@/components/Packets'
 import { PlaybackControls } from '@/components/PlaybackControls'
 import { ScenarioPicker } from '@/components/ScenarioPicker'
+import { ShareButton } from '@/components/ShareButton'
 import { Timeline } from '@/components/Timeline'
 import { useSim } from '@/store/sim'
 import { useShortcuts } from '@/store/useShortcuts'
@@ -46,6 +47,7 @@ export default function App() {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <InvariantBadge />
+          <ShareButton />
           <PlaybackControls />
         </div>
       </header>

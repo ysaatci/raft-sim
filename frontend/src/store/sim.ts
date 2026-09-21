@@ -1,5 +1,6 @@
 import { createStore, useStore } from 'zustand'
 import { linkStatus } from '@/lib/cluster'
+import { decodeLink, encodeLink } from '@/lib/share'
 import type { Frame, SimulationClient } from '@/client/client'
 import type { Action, Config, NodeID, Scenario, SimEvent, SimState } from '@/client/types'
 
@@ -37,6 +38,10 @@ export interface SimStore {
   horizon: number
 
   init(client: SimulationClient, config?: Partial<Config>): Promise<void>
+  /** A URL fragment that reproduces the current run at the current time. */
+  shareLink(): Promise<string>
+  /** Restores a run from a shared link, paused at its time; false if the link is invalid. */
+  openLink(fragment: string): Promise<boolean>
   /** Loads a built-in scenario, rewound to its start, and plays it. */
   loadScenario(id: string): Promise<void>
   /** Starts over on the same client, with a new or the current config. */
@@ -129,6 +134,39 @@ export function createSimStore() {
         } catch (e) {
           set({ loadError: e instanceof Error ? e.message : String(e) })
         }
+      },
+      async shareLink() {
+        const { scenario, diverged, state, client } = get()
+        if (!state || !client) return ''
+        if (scenario && !diverged) return encodeLink({ scenario: scenario.id, time: state.time })
+        return encodeLink({ config: state.config, actions: await client.actions(), time: state.time })
+      },
+      async openLink(fragment) {
+        const link = decodeLink(fragment)
+        if (link && 'scenario' in link) await get().loadScenario(link.scenario)
+        else if (link) {
+          carry = 0
+          await run((c) => {
+            set({
+              events: [],
+              selected: null,
+              partitionDraft: null,
+              error: null,
+              horizon: 0,
+              scenario: null,
+              diverged: false,
+            })
+            return c.replay(link.config, link.actions)
+          })
+          set({ horizon: Math.max(link.time, ...link.actions.map((a) => a.at)) })
+        }
+        if (!link || ('scenario' in link && get().scenario?.id !== link.scenario)) {
+          set({ error: 'That link could not be opened.' })
+          return false
+        }
+        set({ playing: false })
+        await get().seek(link.time)
+        return true
       },
       async loadScenario(id) {
         const scenario = get().scenarios.find((s) => s.id === id)

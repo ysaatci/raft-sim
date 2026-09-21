@@ -1,5 +1,5 @@
 import type { Frame, SimulationClient } from './client'
-import type { Action, Config, NodeView, Scenario, SimEvent, SimState } from './types'
+import type { Action, Config, NodeView, RecordedAction, Scenario, SimEvent, SimState } from './types'
 
 const nodeEvents = {
   crash: 'node-crashed',
@@ -70,10 +70,12 @@ export class MockClient implements SimulationClient {
   calls: string[] = []
   state!: SimState
   private pending: SimEvent[] = []
+  private recorded: RecordedAction[] = []
 
   async create(config?: Partial<Config>): Promise<Frame> {
     const cfg = { ...defaultConfig, ...config }
     this.calls.push(`create ${JSON.stringify(config ?? {})}`)
+    this.recorded = []
     this.state = {
       time: 0,
       config: cfg,
@@ -101,6 +103,17 @@ export class MockClient implements SimulationClient {
     const frame = await this.create(sc.config)
     this.calls[this.calls.length - 1] = `scenario ${id}`
     return frame
+  }
+
+  async replay(config: Config, actions: RecordedAction[]): Promise<Frame> {
+    const frame = await this.create(config)
+    this.calls[this.calls.length - 1] = `replay ${JSON.stringify({ config, actions })}`
+    this.recorded = [...actions]
+    return frame
+  }
+
+  async actions(): Promise<RecordedAction[]> {
+    return structuredClone(this.recorded)
   }
 
   async advance(ms: number): Promise<Frame> {
@@ -155,6 +168,7 @@ export class MockClient implements SimulationClient {
       this.state.network = { ...action.link, cut: false }
       for (const l of links) Object.assign(l, { ...action.link, cut: l.cut })
     }
+    this.recorded.push({ ...action, at: this.state.time })
     return this.frame(false)
   }
 

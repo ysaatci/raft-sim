@@ -64,6 +64,17 @@ describe.skipIf(!built)('Engine with raft.wasm', () => {
     expect(() => engine.call('scenario', 'nope')).toThrow(/no scenario/)
   })
 
+  test('replays a recorded timeline to the same state', () => {
+    engine.call('create', '{"seed": 8}')
+    engine.call('advance', 800)
+    engine.call('do', '{"kind":"crash","node":1}')
+    const want = parse(engine.call('advance', 700)).state
+    const actions = JSON.parse(engine.actions())
+    expect(actions).toEqual([{ at: 800, kind: 'crash', node: 1 }])
+    engine.call('replay', JSON.stringify({ config: want.config, actions }))
+    expect(parse(engine.call('advance', 1500)).state).toEqual(want)
+  })
+
   test('surfaces simulator errors', () => {
     engine.call('create', '')
     expect(() => engine.call('do', '{"kind":"crash","node":42}')).toThrow(/no node 42/)

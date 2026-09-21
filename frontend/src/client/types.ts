@@ -138,3 +138,6 @@ export interface Scenario {
   duration: number
   steps: ScenarioStep[]
 }
+
+/** An action as recorded on the timeline, with the time it was applied. */
+export type RecordedAction = Action & { at: number }

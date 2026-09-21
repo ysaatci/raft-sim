@@ -131,3 +131,40 @@ test('acting during a scenario marks it diverged; reset returns to free play', a
   expect(s().scenario).toBeNull()
   expect(s().diverged).toBe(false)
 })
+
+test('a free-play link replays the recorded actions and seeks to the shared time', async () => {
+  await s().step(400)
+  await s().act({ kind: 'crash', node: 2 })
+  await s().step(100)
+  const link = await s().shareLink()
+  expect(link).toMatch(/^run=.*&t=500$/)
+
+  const other = new MockClient()
+  await s().init(other)
+  expect(await s().openLink('#' + link)).toBe(true)
+  const replayed = other.calls.find((c) => c.startsWith('replay'))!
+  expect(JSON.parse(replayed.slice(7)).actions).toEqual([{ kind: 'crash', node: 2, at: 400 }])
+  expect(other.calls.at(-1)).toBe('seek 500')
+  expect(s().playing).toBe(false)
+  expect(s().horizon).toBe(500)
+})
+
+test('a scenario link loads the scenario; after diverging it becomes a run link', async () => {
+  await s().loadScenario('demo')
+  s().pause()
+  await s().step(300)
+  expect(await s().shareLink()).toBe('scenario=demo&t=300')
+  await s().act({ kind: 'crash', node: 1 })
+  expect(await s().shareLink()).toMatch(/^run=/)
+
+  await s().init(new MockClient())
+  expect(await s().openLink('scenario=demo&t=300')).toBe(true)
+  expect(s().scenario?.id).toBe('demo')
+  expect(s().state?.time).toBe(300)
+})
+
+test('an invalid link reports an error', async () => {
+  expect(await s().openLink('#run=garbage')).toBe(false)
+  expect(await s().openLink('#scenario=missing')).toBe(false)
+  expect(s().error).toMatch(/could not be opened/)
+})

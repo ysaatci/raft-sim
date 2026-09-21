@@ -1,7 +1,7 @@
-import type { RawFrame } from '../worker/engine'
-import type { Request, Response } from '../worker/protocol'
+import type { Method, RawFrame } from '../worker/engine'
+import type { DataMethod, Request, Response } from '../worker/protocol'
 import type { Frame, SimulationClient } from './client'
-import type { Action, Config, Scenario } from './types'
+import type { Action, Config, RecordedAction, Scenario } from './types'
 
 /** The part of Worker the client uses, so tests can substitute a fake. */
 export type WorkerLike = Pick<Worker, 'postMessage' | 'terminate'> & {
@@ -51,16 +51,27 @@ export class WasmClient implements SimulationClient {
   do(action: Action) {
     return this.frame('do', JSON.stringify(action))
   }
-  async scenarios(): Promise<Scenario[]> {
-    const res = await this.send({ id: this.nextId++, method: 'scenarios' })
-    return 'data' in res ? JSON.parse(res.data) : []
+  replay(config: Config, actions: RecordedAction[]) {
+    return this.frame('replay', JSON.stringify({ config, actions }))
+  }
+  scenarios(): Promise<Scenario[]> {
+    return this.data('scenarios')
+  }
+  actions(): Promise<RecordedAction[]> {
+    return this.data('actions')
   }
   dispose() {
     this.worker.terminate()
     this.failAll('simulation disposed')
   }
 
-  private async frame(method: Exclude<Request['method'], 'scenarios'>, arg: string | number): Promise<Frame> {
+  private async data<T>(method: DataMethod): Promise<T> {
+    const res = await this.send({ id: this.nextId++, method })
+    if (!('data' in res)) throw new Error(`unexpected reply to ${method}`)
+    return JSON.parse(res.data)
+  }
+
+  private async frame(method: Method, arg: string | number): Promise<Frame> {
     const res = await this.send({ id: this.nextId++, method, arg })
     if (!('frame' in res)) throw new Error(`unexpected reply to ${method}`)
     return parseFrame(res.frame)

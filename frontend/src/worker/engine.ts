@@ -14,6 +14,7 @@ export interface RaftSimApi {
   actions(): string | { error: string }
   scenarios(): string
   loadScenario(id: string): string | null
+  replay(configJSON: string, actionsJSON: string): string | null
 }
 
 /** A frame as sent to the main thread: JSON strings, parsed there. */
@@ -23,7 +24,7 @@ export interface RawFrame {
   reset: boolean
 }
 
-export type Method = 'create' | 'scenario' | 'advance' | 'seek' | 'do'
+export type Method = 'create' | 'scenario' | 'replay' | 'advance' | 'seek' | 'do'
 
 export class Engine {
   private api: RaftSimApi
@@ -45,6 +46,12 @@ export class Engine {
         err = this.api.loadScenario(arg as string)
         reset = true
         break
+      case 'replay': {
+        const { config, actions } = JSON.parse(arg as string)
+        err = this.api.replay(JSON.stringify(config), JSON.stringify(actions))
+        reset = true
+        break
+      }
       case 'advance':
         err = this.api.advance(arg as number)
         break
@@ -58,6 +65,11 @@ export class Engine {
     }
     if (err !== null) throw new Error(err)
     return this.frame(reset)
+  }
+
+  /** The recorded timeline, as JSON. */
+  actions(): string {
+    return unwrap(this.api.actions())
   }
 
   /** The built-in scenarios, as JSON. */

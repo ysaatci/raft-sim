@@ -1,4 +1,4 @@
-import type { Action, Config, Scenario, SimEvent, SimState } from './types'
+import type { Action, Config, RecordedAction, Scenario, SimEvent, SimState } from './types'
 
 /** What the UI gets back from every call: the new state plus new events. */
 export interface Frame {
@@ -20,6 +20,10 @@ export interface SimulationClient {
   /** Replaces the simulation with a built-in scenario, rewound to its start. */
   loadScenario(id: string): Promise<Frame>
   scenarios(): Promise<Scenario[]>
+  /** Replaces the simulation with one rebuilt from a recorded timeline (e.g. a shared link). */
+  replay(config: Config, actions: RecordedAction[]): Promise<Frame>
+  /** The recorded timeline of the current simulation. */
+  actions(): Promise<RecordedAction[]>
   advance(ms: number): Promise<Frame>
   seek(time: number): Promise<Frame>
   do(action: Action): Promise<Frame>
