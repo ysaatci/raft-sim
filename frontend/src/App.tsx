@@ -1,6 +1,7 @@
 import { ClusterRing } from '@/components/ClusterRing'
 import { ClusterSettings } from '@/components/ClusterSettings'
 import { ErrorToast } from '@/components/ErrorToast'
+import { InvariantBadge } from '@/components/InvariantBadge'
 import { Legend } from '@/components/Legend'
 import { LogGrid } from '@/components/LogGrid'
 import { NetworkPanel } from '@/components/NetworkPanel'
@@ -28,7 +29,10 @@ export default function App() {
           <h1 className="text-lg font-semibold tracking-tight">Raft Simulator</h1>
           <p className="text-sm text-muted-foreground">Leader election and log replication, step by step</p>
         </div>
-        <PlaybackControls />
+        <div className="flex flex-wrap items-center gap-4">
+          <InvariantBadge />
+          <PlaybackControls />
+        </div>
       </header>
       {state && <Timeline />}
       {state ? (
