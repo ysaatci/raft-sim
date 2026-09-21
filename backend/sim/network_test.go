@@ -98,3 +98,20 @@ func TestNetworkIsDeterministic(t *testing.T) {
 		}
 	}
 }
+
+func TestSetAllUpdatesEveryLinkButKeepsCuts(t *testing.T) {
+	n := newTestNetwork(LinkConfig{LatencyMs: 1})
+	n.SetLink(1, 2, LinkConfig{LatencyMs: 50})
+	n.Partition([]raft.NodeID{1}, []raft.NodeID{3})
+	n.SetAll(LinkConfig{LatencyMs: 30, DropRate: 0.1, Cut: true})
+
+	if got := n.Link(1, 2); got != (LinkConfig{LatencyMs: 30, DropRate: 0.1}) {
+		t.Errorf("overridden link = %+v", got)
+	}
+	if got := n.Link(1, 3); !got.Cut || got.LatencyMs != 30 {
+		t.Errorf("cut link = %+v, want cut with new latency", got)
+	}
+	if got := n.Link(2, 3); got.Cut || got.LatencyMs != 30 {
+		t.Errorf("default link = %+v; SetAll must not cut links", got)
+	}
+}

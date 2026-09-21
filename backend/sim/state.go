@@ -12,6 +12,7 @@ import (
 type State struct {
 	Time       Time        `json:"time"`
 	Config     Config      `json:"config"`
+	Network    LinkConfig  `json:"network"` // current conditions of links without an override
 	Nodes      []NodeView  `json:"nodes"`
 	Flights    []Flight    `json:"flights"` // in flight or recently dropped, by ID
 	Links      []LinkView  `json:"links"`   // every directed link between two nodes
@@ -42,6 +43,7 @@ func (c *Cluster) State() State {
 	s := State{
 		Time:       c.now,
 		Config:     c.cfg,
+		Network:    c.net.Defaults(),
 		Violations: append([]Violation{}, c.check.violations...),
 		Flights:    []Flight{},
 	}

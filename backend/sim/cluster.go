@@ -343,8 +343,8 @@ func (c *Cluster) Propose(id raft.NodeID, data string) error {
 // SetLink overrides the link from -> to.
 func (c *Cluster) SetLink(from, to raft.NodeID, cfg LinkConfig) { c.net.SetLink(from, to, cfg) }
 
-// SetNetwork changes the default configuration of every link.
-func (c *Cluster) SetNetwork(cfg LinkConfig) { c.net.SetDefaults(cfg) }
+// SetNetwork changes the latency, jitter and loss of every link, keeping cuts.
+func (c *Cluster) SetNetwork(cfg LinkConfig) { c.net.SetAll(cfg) }
 
 // Partition cuts every link between nodes in different groups.
 func (c *Cluster) Partition(groups ...[]raft.NodeID) { c.net.Partition(groups...) }

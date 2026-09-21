@@ -41,8 +41,19 @@ func (n *Network) SetLink(from, to raft.NodeID, cfg LinkConfig) {
 	n.overrides[link{from, to}] = cfg
 }
 
-// SetDefaults changes the configuration of every link without an override.
-func (n *Network) SetDefaults(cfg LinkConfig) { n.defaults = cfg }
+// SetAll gives every link the latency, jitter and loss of cfg. Whether each
+// link is cut is left unchanged: partitions survive a change of conditions.
+func (n *Network) SetAll(cfg LinkConfig) {
+	cfg.Cut = n.defaults.Cut
+	n.defaults = cfg
+	for l, old := range n.overrides {
+		cfg.Cut = old.Cut
+		n.overrides[l] = cfg
+	}
+}
+
+// Defaults returns the configuration of links without an override.
+func (n *Network) Defaults() LinkConfig { return n.defaults }
 
 // Partition cuts every link between nodes in different groups, in both
 // directions. Links within a group are left as they are.
